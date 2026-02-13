@@ -168,35 +168,40 @@ export default function App() {
   const formatE = (v) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
 
   return (
-    <div className="h-screen w-screen bg-[#0f172a] text-slate-300 flex flex-col items-center overflow-hidden font-sans">
+    <div className="min-h-screen w-full bg-[#0f172a] text-slate-300 flex flex-col items-center overflow-x-hidden font-sans">
       <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-50">
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/10 rounded-full blur-[150px]" />
         <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-emerald-500/10 rounded-full blur-[150px]" />
       </div>
 
-      <header className="relative w-full z-10 bg-slate-900/40 backdrop-blur-xl border-b border-white/5 px-8 h-16 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="bg-gradient-to-tr from-indigo-600 to-violet-600 p-2 rounded-xl text-white shadow-lg"><Building2 size={20} /></div>
-          <input value={activeSim.name} onChange={(e) => setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, name: e.target.value } : s))} className="font-black text-white bg-transparent border-none focus:ring-0 p-0 text-xl w-64 tracking-tight" />
+      <header className="relative w-full z-10 bg-slate-900/40 backdrop-blur-xl border-b border-white/5 px-4 sm:px-8 py-4 sm:py-0 sm:h-16 flex flex-col sm:flex-row items-center justify-between shrink-0 gap-4 sm:gap-0">
+        <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-start">
+          <div className="flex items-center gap-4">
+            <div className="bg-gradient-to-tr from-indigo-600 to-violet-600 p-2 rounded-xl text-white shadow-lg"><Building2 size={20} /></div>
+            <input value={activeSim.name} onChange={(e) => setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, name: e.target.value } : s))} className="font-black text-white bg-transparent border-none focus:ring-0 p-0 text-lg sm:text-xl w-48 sm:w-64 tracking-tight truncate" />
+          </div>
         </div>
-        <div className="flex bg-white/5 p-1 rounded-2xl border border-white/5">
-          {simulations.map(sim => (
-            <button key={sim.id} onClick={() => setActiveSimId(sim.id)} className={`px-5 py-2 rounded-xl text-xs font-black transition-all ${activeSimId === sim.id ? 'bg-white text-slate-900 shadow-xl' : 'text-slate-500 hover:text-slate-300'}`}>{sim.name}</button>
-          ))}
-          <button onClick={() => { const n = { id: uuidv4(), name: `Projet ${simulations.length + 1}`, data: { ...INITIAL_DATA, charges: JSON.parse(JSON.stringify(INITIAL_CHARGES)) } }; setSimulations([...simulations, n]); setActiveSimId(n.id); }} className="p-2 text-indigo-400"><Plus size={18} /></button>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={shareSimulation} className="bg-white/5 text-white p-2.5 rounded-xl border border-white/10 hover:bg-white/10 transition-all text-xs font-black uppercase tracking-widest flex items-center gap-2" title="Copier le lien de partage">
-            <Share2 size={16} /> <span className="hidden xl:inline">Partager</span>
-          </button>
-          <button onClick={exportSyntheticPDF} className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-[0.2em] border border-white/10 hover:bg-indigo-500 transition-all flex items-center gap-2">
-            {isGenerating ? <div className="animate-spin h-4 w-4 border-2 border-white/30 border-t-white rounded-full" /> : <><Download size={16} /> PDF</>}
-          </button>
+
+        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto items-center">
+          <div className="flex bg-white/5 p-1 rounded-2xl border border-white/5 w-full sm:w-auto overflow-x-auto scrollbar-hide">
+            {simulations.map(sim => (
+              <button key={sim.id} onClick={() => setActiveSimId(sim.id)} className={`px-4 sm:px-5 py-2 rounded-xl text-xs font-black transition-all whitespace-nowrap ${activeSimId === sim.id ? 'bg-white text-slate-900 shadow-xl' : 'text-slate-500 hover:text-slate-300'}`}>{sim.name}</button>
+            ))}
+            <button onClick={() => { const n = { id: uuidv4(), name: `Projet ${simulations.length + 1}`, data: { ...INITIAL_DATA, charges: JSON.parse(JSON.stringify(INITIAL_CHARGES)) } }; setSimulations([...simulations, n]); setActiveSimId(n.id); }} className="p-2 text-indigo-400"><Plus size={18} /></button>
+          </div>
+          <div className="flex gap-2 w-full sm:w-auto justify-end">
+            <button onClick={shareSimulation} className="bg-white/5 text-white p-2.5 rounded-xl border border-white/10 hover:bg-white/10 transition-all text-xs font-black uppercase tracking-widest flex items-center gap-2 justify-center flex-1 sm:flex-initial" title="Copier le lien de partage">
+              <Share2 size={16} /> <span className="sm:hidden xl:inline">Partager</span>
+            </button>
+            <button onClick={exportSyntheticPDF} className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-[0.2em] border border-white/10 hover:bg-indigo-500 transition-all flex items-center gap-2 justify-center flex-1 sm:flex-initial shadow-lg active:scale-95">
+              {isGenerating ? <div className="animate-spin h-4 w-4 border-2 border-white/30 border-t-white rounded-full" /> : <><Download size={16} /> PDF</>}
+            </button>
+          </div>
         </div>
       </header>
 
-      <main className="relative z-10 flex-1 w-full p-6 grid grid-cols-12 gap-6 overflow-hidden max-w-[1700px]">
-        <aside className="col-span-3 flex flex-col gap-6 overflow-y-auto pr-2 scrollbar-hide py-2 animate-in fade-in slide-in-from-left-4 duration-700">
+      <main className="relative z-10 flex-1 w-full p-4 sm:p-6 flex flex-col lg:grid lg:grid-cols-12 gap-6 max-w-[1700px]">
+        <aside className="w-full lg:col-span-3 flex flex-col gap-6 lg:overflow-y-auto lg:pr-2 scrollbar-hide py-2 animate-in fade-in slide-in-from-left-4 duration-700 order-2 lg:order-1">
           <GlassSection title="Patrimoine" icon={<Home size={18} className="text-indigo-400" />}>
             <PremiumInput label="Prix d'achat" value={activeSim.data.prixAchat} onChange={(v) => updateData('prixAchat', v)} tooltip="Prix net vendeur hors frais" />
             <PremiumInput label="Travaux" value={activeSim.data.travaux} onChange={(v) => updateData('travaux', v)} tooltip="Montant estimé des rénovations" />
@@ -242,39 +247,37 @@ export default function App() {
           </GlassSection>
         </aside>
 
-        <div className="col-span-9 flex flex-col gap-6 animate-in fade-in slide-in-from-right-4 duration-700">
-          <div className="grid grid-cols-4 gap-6 h-36 shrink-0 pt-2">
+        <div className="w-full lg:col-span-9 flex flex-col gap-6 animate-in fade-in slide-in-from-right-4 duration-700 order-1 lg:order-2">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 shrink-0 pt-2 lg:h-36">
             <HeroKPI label="Cashflow Net" value={formatE(calculations.cashflowM)} color={calculations.cashflowM >= 0 ? "emerald" : "rose"} icon={<ArrowRightLeft />} highlight sub="Avant impôts" />
             <HeroKPI label="Cashflow Net-Net" value={formatE(calculations.cashflowNetNet)} color={calculations.cashflowNetNet >= 0 ? "indigo" : "slate"} icon={<Wallet />} sub={`Après impôts (TMI ${activeSim.data.tmi}%)`} />
             <HeroKPI label="Rendement Net" value={`${calculations.rNet.toFixed(2)}%`} color="emerald" icon={<TrendingUp />} />
             <HeroKPI label="Enrichissement" value={formatE(calculations.beneficeAn * 20 + (calculations.investTotal - activeSim.data.apport))} color="indigo" icon={<Building2 />} sub="Total à 20 ans" />
           </div>
 
-          <div className="flex-1 grid grid-cols-12 gap-6 min-h-0 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden">
-            <div className="col-span-12 flex flex-col h-full">
-              <div className="flex justify-between items-start mb-8 shrink-0">
-                <div><h4 className="text-[10px] font-black uppercase text-indigo-400 tracking-[0.4em] flex items-center gap-2 mb-1"><BarChart3 size={14} /> Projection 20 ans</h4><p className="text-xl font-bold text-white tracking-tight">Analyse patrimoniale</p></div>
-                <div className="flex flex-wrap gap-2 justify-end max-w-[500px]">
-                  <DimensionToggle active={visibleDimensions.netWorth} onClick={() => toggleDimension('netWorth')} dot="bg-indigo-500" label="Valeur Nette" />
-                  <DimensionToggle active={visibleDimensions.debt} onClick={() => toggleDimension('debt')} dot="bg-rose-500" label="Dette" />
-                  <DimensionToggle active={visibleDimensions.cashflow} onClick={() => toggleDimension('cashflow')} dot="bg-emerald-500" label="Cashflow" />
-                  <DimensionToggle active={visibleDimensions.charges} onClick={() => toggleDimension('charges')} dot="bg-slate-500" label="Charges" />
-                </div>
+          <div className="w-full bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-4 sm:p-8 shadow-2xl relative overflow-hidden flex flex-col min-h-[400px] lg:flex-1 lg:min-h-0">
+            <div className="flex flex-col lg:flex-row justify-between items-start mb-6 shrink-0 gap-4">
+              <div><h4 className="text-[10px] font-black uppercase text-indigo-400 tracking-[0.4em] flex items-center gap-2 mb-1"><BarChart3 size={14} /> Projection 20 ans</h4><p className="text-xl font-bold text-white tracking-tight">Analyse patrimoniale</p></div>
+              <div className="flex flex-wrap gap-2 justify-end w-full lg:w-auto">
+                <DimensionToggle active={visibleDimensions.netWorth} onClick={() => toggleDimension('netWorth')} dot="bg-indigo-500" label="Nette" />
+                <DimensionToggle active={visibleDimensions.debt} onClick={() => toggleDimension('debt')} dot="bg-rose-500" label="Dette" />
+                <DimensionToggle active={visibleDimensions.cashflow} onClick={() => toggleDimension('cashflow')} dot="bg-emerald-500" label="Cash" />
+                <DimensionToggle active={visibleDimensions.charges} onClick={() => toggleDimension('charges')} dot="bg-slate-500" label="Chrg" />
               </div>
-              <div className="flex-1 min-h-0 relative">
-                <Line
-                  data={{
-                    labels: calculations.projectionData.map(d => `${d.year} an${d.year > 1 ? 's' : ''}`),
-                    datasets: [
-                      { label: 'Valeur Nette', data: calculations.projectionData.map(d => d.netWorth), borderColor: '#6366f1', borderWidth: 4, tension: 0.4, pointRadius: 5, fill: false, hidden: !visibleDimensions.netWorth },
-                      { label: 'Dette', data: calculations.projectionData.map(d => d.remainingDebt), borderColor: '#f43f5e', borderWidth: 2, borderDash: [5, 5], tension: 0, pointRadius: 0, fill: false, hidden: !visibleDimensions.debt },
-                      { label: 'Cashflow', data: calculations.projectionData.map(d => d.cumCashflow), borderColor: '#10b981', borderWidth: 2, tension: 0.4, pointRadius: 0, fill: false, hidden: !visibleDimensions.cashflow },
-                      { label: 'Charges', data: calculations.projectionData.map(d => d.cumCharges), borderColor: '#64748b', borderWidth: 1, tension: 0, pointRadius: 0, fill: false, hidden: !visibleDimensions.charges }
-                    ]
-                  }}
-                  options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e293b', padding: 12, cornerRadius: 16 } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b', font: { weight: 'bold', size: 10 }, callback: (v) => `${v / 1000}k€` } }, x: { grid: { display: false }, ticks: { color: '#64748b', font: { weight: 'bold', size: 10 } } } } }}
-                />
-              </div>
+            </div>
+            <div className="flex-1 w-full min-h-[300px] lg:min-h-0 relative">
+              <Line
+                data={{
+                  labels: calculations.projectionData.map(d => `${d.year} an${d.year > 1 ? 's' : ''}`),
+                  datasets: [
+                    { label: 'Valeur Nette', data: calculations.projectionData.map(d => d.netWorth), borderColor: '#6366f1', borderWidth: 4, tension: 0.4, pointRadius: 3, fill: false, hidden: !visibleDimensions.netWorth },
+                    { label: 'Dette', data: calculations.projectionData.map(d => d.remainingDebt), borderColor: '#f43f5e', borderWidth: 2, borderDash: [5, 5], tension: 0, pointRadius: 0, fill: false, hidden: !visibleDimensions.debt },
+                    { label: 'Cashflow', data: calculations.projectionData.map(d => d.cumCashflow), borderColor: '#10b981', borderWidth: 2, tension: 0.4, pointRadius: 0, fill: false, hidden: !visibleDimensions.cashflow },
+                    { label: 'Charges', data: calculations.projectionData.map(d => d.cumCharges), borderColor: '#64748b', borderWidth: 1, tension: 0, pointRadius: 0, fill: false, hidden: !visibleDimensions.charges }
+                  ]
+                }}
+                options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e293b', padding: 12, cornerRadius: 16 } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b', font: { weight: 'bold', size: 10 }, callback: (v) => `${v / 1000}k€` } }, x: { grid: { display: false }, ticks: { color: '#64748b', font: { weight: 'bold', size: 10 }, maxTicksLimit: 6 } } } }}
+              />
             </div>
           </div>
         </div>
@@ -300,24 +303,24 @@ export default function App() {
 
 // --- UI COMPONENTS ---
 function GlassSection({ title, icon, children }) {
-  return <div className="bg-slate-900/40 backdrop-blur-xl rounded-[2rem] border border-white/5 p-6 shadow-xl transition-all group shrink-0"><h3 className="text-xs font-black text-white border-b border-white/5 pb-4 mb-5 flex items-center justify-between uppercase tracking-[0.2em] group-hover:text-indigo-400 transition-colors"><div className="flex items-center gap-3">{icon}{title}</div></h3><div className="space-y-4">{children}</div></div>;
+  return <div className="bg-slate-900/40 backdrop-blur-xl rounded-[2rem] border border-white/5 p-6 shadow-xl transition-all group shrink-0 w-full"><h3 className="text-xs font-black text-white border-b border-white/5 pb-4 mb-5 flex items-center justify-between uppercase tracking-[0.2em] group-hover:text-indigo-400 transition-colors"><div className="flex items-center gap-3">{icon}{title}</div></h3><div className="space-y-4">{children}</div></div>;
 }
 function PremiumInput({ label, value, onChange, tooltip }) {
   return <div className="flex flex-col gap-2 group/input"><div className="flex justify-between items-center"><label className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none px-1 group-focus-within/input:text-indigo-400 transition-colors">{label}</label>{tooltip && <InfoTooltip text={tooltip} />}</div><input type="number" value={value} onChange={(e) => onChange(e.target.value)} className="w-full bg-slate-500/5 border border-white/5 rounded-xl p-3 text-sm font-black text-white focus:ring-2 focus:ring-indigo-500/20 focus:bg-white/10 transition-all font-mono" /></div>;
 }
 function InfoTooltip({ text }) {
-  return <div className="group relative cursor-help"><Info size={12} className="text-slate-600 hover:text-indigo-400 transition-colors" /><div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 text-white text-[10px] w-48 rounded-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity border border-white/10 shadow-xl z-50 text-center leading-relaxed">{text}</div></div>;
+  return <div className="group relative cursor-help"><Info size={12} className="text-slate-600 hover:text-indigo-400 transition-colors" /><div className="absolute right-0 bottom-full mb-2 px-3 py-2 bg-slate-900 text-white text-[10px] w-48 rounded-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity border border-white/10 shadow-xl z-50 text-center leading-relaxed">{text}</div></div>;
 }
 function HeroKPI({ label, value, color, icon, highlight = false, sub }) {
   const c = { emerald: 'text-emerald-400', indigo: 'text-indigo-400', slate: 'text-slate-400', rose: 'text-rose-400' };
   const bg = { emerald: 'bg-emerald-500/10', indigo: 'bg-indigo-500/10', slate: 'bg-slate-500/10', rose: 'bg-rose-500/10' };
-  return <div className={`bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/5 p-6 flex flex-col justify-center relative shadow-xl hover:-translate-y-1 transition-all duration-500 group overflow-hidden ${highlight ? 'ring-2 ring-emerald-500/30' : ''}`}><div className="relative"><div className="flex items-center gap-2 mb-2"><div className={`p-1.5 rounded-lg ${bg[color]} ${c[color]}`}>{React.cloneElement(icon, { size: 14 })}</div><p className="text-[9px] font-black uppercase text-slate-500 tracking-widest">{label}</p></div><p className={`text-3xl font-black tracking-tighter ${c[color]}`}>{value}</p>{sub && <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-1 italic">{sub}</p>}</div></div>;
+  return <div className={`bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/5 p-4 sm:p-6 flex flex-col justify-center relative shadow-xl hover:-translate-y-1 transition-all duration-500 group overflow-hidden ${highlight ? 'ring-2 ring-emerald-500/30' : ''}`}><div className="relative"><div className="flex items-center gap-2 mb-2"><div className={`p-1.5 rounded-lg ${bg[color]} ${c[color]}`}>{React.cloneElement(icon, { size: 14 })}</div><p className="text-[9px] font-black uppercase text-slate-500 tracking-widest truncate">{label}</p></div><p className={`text-2xl sm:text-3xl font-black tracking-tighter truncate ${c[color]}`}>{value}</p>{sub && <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-1 italic truncate">{sub}</p>}</div></div>;
 }
 function Toggle({ active, onToggle }) {
   return <button onClick={onToggle} className={`w-10 h-5 rounded-full transition-all relative ${active ? 'bg-indigo-600' : 'bg-slate-700'}`}><div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow-md transition-all ${active ? 'left-6' : 'left-1'}`} /></button>;
 }
 function DimensionToggle({ active, onClick, dot, label }) {
-  return <button onClick={onClick} className={`px-4 py-2 rounded-full border flex items-center gap-2 transition-all ${active ? 'bg-white/10 border-indigo-500 text-white' : 'border-white/5 text-slate-500 opacity-50 hover:opacity-100 hover:bg-white/5'}`}><div className={`w-2 h-2 rounded-full ${dot} ${!active ? 'grayscale' : ''}`} /><span className="text-[10px] font-black uppercase tracking-widest">{label}</span>{active ? <Eye size={12} className="ml-1 opacity-50" /> : <EyeOff size={12} className="ml-1 opacity-20" />}</button>;
+  return <button onClick={onClick} className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border flex items-center gap-2 transition-all ${active ? 'bg-white/10 border-indigo-500 text-white' : 'border-white/5 text-slate-500 opacity-50 hover:opacity-100 hover:bg-white/5'}`}><div className={`w-2 h-2 rounded-full ${dot} ${!active ? 'grayscale' : ''}`} /><span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest hidden sm:inline">{label}</span><span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest sm:hidden">{label.slice(0, 4)}</span>{active ? <Eye size={12} className="ml-1 opacity-50" /> : <EyeOff size={12} className="ml-1 opacity-20" />}</button>;
 }
 function RepKPI({ label, value, highlight }) {
   return <div className={`p-8 bg-slate-50 rounded-[2.5rem] ${highlight ? 'border-2 border-indigo-600 ring-8 ring-indigo-50' : ''}`}><p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{label}</p><p className="text-3xl font-black text-slate-900 tracking-tighter">{value}</p></div>;
