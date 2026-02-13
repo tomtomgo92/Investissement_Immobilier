@@ -1,16 +1,16 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   Calculator, Home, Euro, Percent, Users, Receipt, CreditCard, ShieldCheck,
   TrendingUp, Landmark, ArrowRightLeft, UserPlus, Plus, Trash2, Info,
   ChevronDown, ChevronUp, Download, Share2, Link as LinkIcon, Building2,
-  Calendar, LineChart as ChartIcon, FileText, Trash, Copy
+  Calendar, LineChart as ChartIcon, FileText, Trash, Copy, Sparkles
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement,
   BarElement, Title, Tooltip, Legend, ArcElement,
 } from 'chart.js';
-import { Line, Bar, Doughnut } from 'react-chartjs-2';
+import { Line, Doughnut } from 'react-chartjs-2';
 
 ChartJS.register(
   CategoryScale, LinearScale, PointElement, LineElement, BarElement,
@@ -20,7 +20,7 @@ ChartJS.register(
 const INITIAL_DATA = {
   prixAchat: 92000, travaux: 20000, fraisNotaire: 7360, apport: 15000,
   tauxInteret: 3.85, dureeCredit: 20, mensualiteCredit: 567,
-  autoCredit: true, // New: auto-calculate credit?
+  autoCredit: true,
   nbColocs: 3, loyers: [493, 493, 493],
   chargesCopro: 2733, assurancePNO: 159.81, internet: 420, electricite: 600, eau: 696,
   taxeFonciere: 1170, travauxCopro: 0, cfe: 354, compta: 289, rentila: 48, ogi: 102, cotisationBancaire: 0
@@ -28,7 +28,7 @@ const INITIAL_DATA = {
 
 export default function App() {
   const [simulations, setSimulations] = useState([
-    { id: uuidv4(), name: 'Appart Lyon 3', link: '', data: { ...INITIAL_DATA } }
+    { id: uuidv4(), name: 'Appart Lyon 3', data: { ...INITIAL_DATA } }
   ]);
   const [activeSimId, setActiveSimId] = useState(simulations[0].id);
 
@@ -39,7 +39,6 @@ export default function App() {
     const investissementTotal = d.prixAchat + d.travaux + d.fraisNotaire;
     const montantAEmprunter = Math.max(0, investissementTotal - d.apport);
 
-    // Calculate dynamic monthly payment if auto is on
     let mCredit = d.mensualiteCredit;
     if (d.autoCredit) {
       const r = d.tauxInteret / 100 / 12;
@@ -47,9 +46,7 @@ export default function App() {
       if (n > 0) {
         if (r === 0) mCredit = montantAEmprunter / n;
         else mCredit = (montantAEmprunter * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-      } else {
-        mCredit = 0;
-      }
+      } else mCredit = 0;
     }
 
     const recetteMensuelle = d.loyers.reduce((acc, curr) => acc + curr, 0);
@@ -74,129 +71,130 @@ export default function App() {
   const updateSimData = (field, value) => {
     setSimulations(prev => prev.map(s => {
       if (s.id !== activeSimId) return s;
-      let val = parseFloat(value);
-      if (isNaN(val)) val = 0;
-
+      let val = parseFloat(value) || 0;
       const newData = { ...s.data, [field]: val };
-
-      // Auto-calculate Notary Fees if Price changes (approx 8%)
-      if (field === 'prixAchat') {
-        newData.fraisNotaire = Math.round(val * 0.08);
-      }
-
+      if (field === 'prixAchat') newData.fraisNotaire = Math.round(val * 0.08);
       return { ...s, data: newData };
     }));
-  };
-
-  const toggleAutoCredit = () => {
-    setSimulations(prev => prev.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, autoCredit: !s.data.autoCredit } } : s));
   };
 
   const formatEuro = (val) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(val);
 
   return (
-    <div className="h-screen w-screen bg-slate-50 flex flex-col items-center overflow-hidden font-sans text-slate-800">
-      <header className="w-full bg-white border-b border-slate-200 px-6 py-2 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="bg-emerald-600 p-1.5 rounded-lg text-white font-bold tracking-tighter shadow-sm shadow-emerald-200 cursor-default">
-            <Building2 size={18} />
+    <div className="h-screen w-screen bg-[#0f172a] text-slate-300 flex flex-col items-center overflow-hidden font-sans selection:bg-indigo-500/30">
+      {/* Background Aesthetic */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/10 rounded-full blur-[150px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-emerald-500/10 rounded-full blur-[150px]" />
+      </div>
+
+      {/* Premium Header */}
+      <header className="relative w-full z-10 bg-slate-900/40 backdrop-blur-xl border-b border-white/5 px-8 h-16 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-4">
+          <div className="bg-gradient-to-tr from-indigo-600 to-violet-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/20 active:scale-95 transition-transform cursor-pointer overflow-hidden group">
+            <Building2 size={20} className="group-hover:rotate-12 transition-transform" />
+            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
           </div>
-          <input
-            value={activeSim.name}
-            onChange={(e) => setSimulations(prev => prev.map(s => s.id === activeSimId ? { ...s, name: e.target.value } : s))}
-            className="font-bold text-slate-900 bg-transparent border-none focus:ring-0 p-0 text-lg w-48 hover:bg-slate-50 rounded px-1 transition-colors"
-          />
+          <div>
+            <input
+              value={activeSim.name}
+              onChange={(e) => setSimulations(prev => prev.map(s => s.id === activeSimId ? { ...s, name: e.target.value } : s))}
+              className="font-black text-white bg-transparent border-none focus:ring-0 p-0 text-xl w-64 tracking-tight"
+            />
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto max-w-[40%] scrollbar-hide">
+        <div className="flex items-center gap-1 bg-white/5 p-1 rounded-2xl border border-white/5">
           {simulations.map(sim => (
             <button
               key={sim.id}
               onClick={() => setActiveSimId(sim.id)}
-              className={`px-4 py-1.5 rounded-xl text-xs font-black transition-all shrink-0 uppercase tracking-tighter ${activeSimId === sim.id ? 'bg-slate-900 text-white shadow-lg shadow-slate-200' : 'text-slate-400 hover:text-slate-900 hover:bg-white'}`}
+              className={`px-5 py-2 rounded-xl text-xs font-black transition-all shrink-0 uppercase tracking-widest ${activeSimId === sim.id ? 'bg-white text-slate-900 shadow-xl' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
             >
               {sim.name}
             </button>
           ))}
           <button
             onClick={() => {
-              const newSim = { id: uuidv4(), name: `Appart ${simulations.length + 1}`, link: '', data: { ...INITIAL_DATA } };
+              const newSim = { id: uuidv4(), name: `Appart ${simulations.length + 1}`, data: { ...INITIAL_DATA } };
               setSimulations([...simulations, newSim]);
               setActiveSimId(newSim.id);
             }}
-            className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors shrink-0 bg-emerald-50/30"
+            className="p-2 text-indigo-400 hover:text-indigo-300 transition-colors"
           >
-            <Plus size={16} />
+            <Plus size={18} />
           </button>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button onClick={() => window.print()} className="p-2 text-slate-400 hover:text-slate-900 transition-colors"><Download size={20} /></button>
-          <button className="bg-emerald-600 text-white px-5 py-2 rounded-xl text-xs font-black uppercase tracking-tighter shadow-lg shadow-emerald-100 active:scale-95 transition-all">Partager</button>
+        <div className="flex items-center gap-4">
+          <button className="p-2.5 text-slate-400 hover:text-white transition-all hover:bg-white/5 rounded-xl"><Share2 size={18} /></button>
+          <button onClick={() => window.print()} className="bg-white/10 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-[0.2em] border border-white/10 hover:bg-white/20 transition-all flex items-center gap-2">
+            <Download size={16} /> PDF
+          </button>
         </div>
       </header>
 
-      <main className="flex-1 w-full p-4 grid grid-cols-12 gap-4 overflow-hidden max-w-[1600px]">
+      {/* Main Content Area */}
+      <main className="relative z-10 flex-1 w-full p-6 grid grid-cols-12 gap-6 overflow-hidden max-w-[1700px]">
 
-        <aside className="col-span-3 flex flex-col gap-4 overflow-y-auto pr-1 scrollbar-hide">
-          <SectionBox title="Investissement" icon={<Home size={16} className="text-blue-500" />}>
-            <MiniInput label="Prix d'achat" value={activeSim.data.prixAchat} onChange={(v) => updateSimData('prixAchat', v)} />
-            <MiniInput label="Travaux Estimés" value={activeSim.data.travaux} onChange={(v) => updateSimData('travaux', v)} />
-            <MiniInput label="Frais Notaire (Auto 8%)" value={activeSim.data.fraisNotaire} onChange={(v) => updateSimData('fraisNotaire', v)} />
-            <div className="mt-2 p-3 bg-blue-600 rounded-xl flex justify-between items-center text-white shadow-lg shadow-blue-100">
-              <span className="text-[10px] font-black uppercase opacity-80 uppercase tracking-widest">Total Projet</span>
-              <span className="text-lg font-black">{formatEuro(calculations.investissementTotal)}</span>
-            </div>
-          </SectionBox>
+        {/* Left Section: Inputs Glassmorphism */}
+        <aside className="col-span-3 flex flex-col gap-6 overflow-y-auto pr-2 scrollbar-hide py-2 animate-in fade-in slide-in-from-left-4 duration-700">
+          <GlassSection title="Investissement" icon={<Home size={18} className="text-indigo-400" />}>
+            <PremiumInput label="Prix d'achat" value={activeSim.data.prixAchat} onChange={(v) => updateSimData('prixAchat', v)} />
+            <PremiumInput label="Travaux" value={activeSim.data.travaux} onChange={(v) => updateSimData('travaux', v)} />
+            <PremiumInput label="Notaire" value={activeSim.data.fraisNotaire} onChange={(v) => updateSimData('fraisNotaire', v)} />
 
-          <SectionBox title="Financement" icon={<Landmark size={16} className="text-amber-500" />}>
-            <MiniInput label="Apport Personnel" value={activeSim.data.apport} onChange={(v) => updateSimData('apport', v)} />
-            <div className="grid grid-cols-2 gap-3">
-              <MiniInput label="Taux Intérêt %" value={activeSim.data.tauxInteret} onChange={(v) => updateSimData('tauxInteret', v)} />
-              <MiniInput label="Durée (Ans)" value={activeSim.data.dureeCredit} onChange={(v) => updateSimData('dureeCredit', v)} />
+            <div className="mt-4 p-5 bg-gradient-to-br from-indigo-600/20 to-violet-600/20 border border-indigo-500/30 rounded-[1.5rem] flex flex-col gap-1 shadow-lg shadow-indigo-500/5">
+              <span className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.25em]">Coût Total Projet</span>
+              <span className="text-2xl font-black text-white tracking-tighter">{formatEuro(calculations.investissementTotal)}</span>
             </div>
-            <div className="flex flex-col gap-2 p-3 bg-slate-50 border border-slate-100 rounded-xl mt-1">
+          </GlassSection>
+
+          <GlassSection title="Financement" icon={<Landmark size={18} className="text-amber-400" />}>
+            <PremiumInput label="Apport Personnel" value={activeSim.data.apport} onChange={(v) => updateSimData('apport', v)} />
+            <div className="grid grid-cols-2 gap-4">
+              <PremiumInput label="Intérêt %" value={activeSim.data.tauxInteret} onChange={(v) => updateSimData('tauxInteret', v)} />
+              <PremiumInput label="Durée (Ans)" value={activeSim.data.dureeCredit} onChange={(v) => updateSimData('dureeCredit', v)} />
+            </div>
+            <div className="mt-2 p-4 bg-slate-800/40 rounded-2xl border border-white/5 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Calcul Auto</span>
-                <button
-                  onClick={toggleAutoCredit}
-                  className={`w-8 h-4 rounded-full transition-colors relative ${activeSim.data.autoCredit ? 'bg-emerald-500' : 'bg-slate-300'}`}
-                >
-                  <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${activeSim.data.autoCredit ? 'left-4.5' : 'left-0.5'}`} />
-                </button>
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Calcul Auto</span>
+                <Toggle active={activeSim.data.autoCredit} onToggle={() => setSimulations(prev => prev.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, autoCredit: !s.data.autoCredit } } : s))} />
               </div>
-              <div className="flex flex-col">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Mensualité</label>
-                <input
-                  type="number"
-                  disabled={activeSim.data.autoCredit}
-                  value={activeSim.data.autoCredit ? calculations.calculatedMensualite.toFixed(0) : activeSim.data.mensualiteCredit}
-                  onChange={(e) => updateSimData('mensualiteCredit', e.target.value)}
-                  className={`w-full bg-white border-none rounded-lg p-2 text-sm font-black text-slate-900 focus:ring-2 focus:ring-emerald-500/20 transition-all ${activeSim.data.autoCredit ? 'opacity-50' : 'shadow-sm'}`}
-                />
-                {activeSim.data.autoCredit && <p className="text-[10px] text-emerald-600 font-bold mt-1 text-center italic">Calculé selon taux/durée</p>}
+              <div className="space-y-1">
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none px-1">Mensualité Crédit</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    disabled={activeSim.data.autoCredit}
+                    value={activeSim.data.autoCredit ? calculations.calculatedMensualite.toFixed(0) : activeSim.data.mensualiteCredit}
+                    onChange={(e) => updateSimData('mensualiteCredit', e.target.value)}
+                    className={`w-full bg-slate-900/50 border border-white/5 rounded-xl p-3 text-lg font-black text-white focus:ring-2 focus:ring-indigo-500/20 transition-all ${activeSim.data.autoCredit ? 'opacity-40 select-none' : ''}`}
+                  />
+                  {activeSim.data.autoCredit && <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[10px] text-emerald-400 font-bold bg-emerald-400/10 px-2 py-0.5 rounded-full"><Sparkles size={10} /> Auto</div>}
+                </div>
               </div>
             </div>
-          </SectionBox>
+          </GlassSection>
 
-          <SectionBox title="Revenus Coloc" icon={<Users size={16} className="text-emerald-500" />}>
-            <div className="flex items-center justify-between mb-3 px-1">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Chambres: {activeSim.data.nbColocs}</span>
-              <div className="flex gap-1.5">
+          <GlassSection title="Revenus Coloc" icon={<Users size={18} className="text-emerald-400" />}>
+            <div className="flex items-center justify-between mb-4 bg-white/5 p-2 rounded-2xl border border-white/5">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Locataires ({activeSim.data.nbColocs})</span>
+              <div className="flex gap-2">
                 <button onClick={() => {
                   const count = Math.max(0, activeSim.data.nbColocs - 1);
                   setSimulations(prev => prev.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: count, loyers: s.data.loyers.slice(0, count) } } : s));
-                }} className="w-6 h-6 flex items-center justify-center bg-slate-100 rounded-lg text-slate-500 hover:bg-slate-200 transition-colors font-bold">-</button>
+                }} className="w-8 h-8 flex items-center justify-center bg-slate-700/50 rounded-xl text-slate-300 hover:text-white transition-colors">-</button>
                 <button onClick={() => {
                   const count = activeSim.data.nbColocs + 1;
                   setSimulations(prev => prev.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: count, loyers: [...s.data.loyers, 0] } } : s));
-                }} className="w-6 h-6 flex items-center justify-center bg-emerald-600 rounded-lg text-white hover:bg-emerald-700 transition-colors shadow-md shadow-emerald-100 font-bold">+</button>
+                }} className="w-8 h-8 flex items-center justify-center bg-emerald-600 rounded-xl text-white hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-500/20">+</button>
               </div>
             </div>
-            <div className="space-y-2 max-h-40 overflow-y-auto pr-1 scrollbar-hide">
+            <div className="space-y-3 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
               {activeSim.data.loyers.map((loyer, i) => (
-                <div key={i} className="flex items-center gap-2 group">
-                  <span className="text-[10px] font-bold text-slate-300 w-4">{i + 1}</span>
+                <div key={i} className="flex items-center gap-4 group">
+                  <span className="text-[10px] font-black text-slate-600 w-4 tracking-tighter transition-colors group-hover:text-indigo-400">{i + 1}</span>
                   <div className="relative flex-1">
                     <input type="number" value={loyer} onChange={(e) => {
                       const val = parseFloat(e.target.value) || 0;
@@ -205,32 +203,39 @@ export default function App() {
                         const nl = [...s.data.loyers]; nl[i] = val;
                         return { ...s, data: { ...s.data, loyers: nl } };
                       }));
-                    }} className="w-full bg-slate-50 text-xs font-black border border-slate-100 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500/10 focus:bg-white transition-all pr-6" />
-                    <Euro size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-300" />
+                    }} className="w-full bg-white/5 text-sm font-black text-white border border-white/5 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/20 focus:bg-white/10 transition-all pr-10" />
+                    <Euro size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 group-hover:text-emerald-400 transition-colors" />
                   </div>
                 </div>
               ))}
             </div>
-          </SectionBox>
+          </GlassSection>
         </aside>
 
-        <div className="col-span-9 flex flex-col gap-4 min-h-0">
-          <div className="grid grid-cols-4 gap-4 h-28 shrink-0">
-            <KPIBox label="Cashflow Mensuel" value={formatEuro(calculations.cashflowMensuel)} color={calculations.cashflowMensuel >= 0 ? "emerald" : "red"} highlight icon={<ArrowRightLeft size={16} />} />
-            <KPIBox label="Rentabilité Nette" value={`${calculations.rentabiliteNet.toFixed(2)}%`} color="blue" icon={<TrendingUp size={16} />} />
-            <KPIBox label="Rentabilité Brute" value={`${calculations.rentabiliteBrute.toFixed(2)}%`} color="slate" icon={<Percent size={16} />} />
-            <KPIBox label="Recette Annuelle" value={formatEuro(calculations.recetteAnnuelle)} color="emerald" icon={<Receipt size={16} />} />
+        {/* Right Section: Visual Insights */}
+        <div className="col-span-9 flex flex-col gap-6 animate-in fade-in slide-in-from-right-4 duration-700">
+          {/* Hero KPIs */}
+          <div className="grid grid-cols-4 gap-6 h-36 shrink-0 pt-2">
+            <HeroKPI label="Cashflow Mensuel" value={formatEuro(calculations.cashflowMensuel)} color={calculations.cashflowMensuel >= 0 ? "emerald" : "rose"} icon={<ArrowRightLeft />} highlight />
+            <HeroKPI label="Rentabilité Nette" value={`${calculations.rentabiliteNet.toFixed(2)}%`} color="indigo" icon={<TrendingUp />} />
+            <HeroKPI label="Rentabilité Brute" value={`${calculations.rentabiliteBrute.toFixed(2)}%`} color="slate" icon={<Percent />} />
+            <HeroKPI label="Revenu Annuel" value={formatEuro(calculations.recetteAnnuelle)} color="emerald" icon={<Receipt />} />
           </div>
 
-          <div className="flex-1 grid grid-cols-12 gap-4 min-h-0">
-            <div className="col-span-8 bg-white rounded-[2rem] border border-slate-200 p-6 flex flex-col shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h4 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
-                  <ChartIcon size={14} className="text-emerald-500" /> Projection Patrimoine & Cashflow (20 ans)
-                </h4>
-                <div className="flex gap-4">
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> Cashflow</div>
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500"><div className="w-2 h-2 rounded-full border border-blue-500 border-dashed"></div> Patrimoine</div>
+          {/* Charts Grid */}
+          <div className="flex-1 grid grid-cols-12 gap-6 min-h-0">
+            {/* Main Chart Card */}
+            <div className="col-span-8 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-8 flex flex-col shadow-2xl overflow-hidden relative group">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h4 className="text-xs font-black uppercase text-indigo-400 tracking-[0.3em] flex items-center gap-2 mb-1">
+                    Projection de Croissance
+                  </h4>
+                  <p className="text-xl font-bold text-white tracking-tight">Patrimoine & Cashflow Cumulés</p>
+                </div>
+                <div className="flex gap-4 bg-white/5 p-2 rounded-xl border border-white/5">
+                  <LegendItem dot="bg-emerald-500" label="Cashflow" />
+                  <LegendItem dot="bg-indigo-500 dashed border border-indigo-400" label="Valeur" transparent />
                 </div>
               </div>
               <div className="flex-1 min-h-0">
@@ -239,133 +244,188 @@ export default function App() {
                     labels: [0, 1, 2, 3, 5, 10, 15, 20],
                     datasets: [
                       {
-                        label: 'Cashflow Cumulé',
+                        label: 'Cashflow €',
                         data: [0, 1, 2, 3, 5, 10, 15, 20].map(y => calculations.beneficeAnnuel * y),
-                        borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.05)', fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#fff', pointBorderWidth: 2
+                        borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.05)', fill: true, tension: 0.4, pointRadius: 5, pointBackgroundColor: '#fff', pointBorderWidth: 3, pointBorderColor: '#10b981', pointHoverRadius: 8
                       },
                       {
-                        label: 'Valeur Patrimoine',
+                        label: 'Patrimoine €',
                         data: Array(8).fill(calculations.investissementTotal),
-                        borderColor: '#3b82f6', borderDash: [5, 5], fill: false, tension: 0, pointRadius: 0
+                        borderColor: '#6366f1', borderDash: [5, 10], fill: false, tension: 0, pointRadius: 0, borderWidth: 2
                       }
                     ]
                   }}
                   options={{
                     responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e293b', titleFont: { size: 12 }, bodyFont: { size: 12, weight: 'bold' } } },
+                    plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { size: 14, weight: 'bold' }, bodyFont: { size: 14 }, padding: 12, cornerRadius: 12, displayColors: false } },
                     scales: {
-                      y: { grid: { color: 'rgba(0,0,0,0.03)' }, ticks: { font: { weight: 'bold', size: 10 }, callback: (v) => `${v / 1000}k€` } },
-                      x: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 10 } } }
+                      y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b', font: { weight: 'bold', size: 11 }, callback: (v) => `${v / 1000}k€` } },
+                      x: { grid: { display: false }, ticks: { color: '#64748b', font: { weight: 'bold', size: 11 } } }
                     }
                   }}
                 />
               </div>
             </div>
 
-            <div className="col-span-4 flex flex-col gap-4">
-              <div className="bg-slate-900 rounded-[2rem] p-6 text-white flex-1 flex flex-col justify-center relative overflow-hidden shadow-2xl shadow-slate-300">
-                <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 scale-150">
-                  <Building2 size={120} />
-                </div>
+            {/* Summary & Charges Card */}
+            <div className="col-span-4 flex flex-col gap-6">
+              {/* Dark Premium Card */}
+              <div className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-[2.5rem] p-8 text-white flex-1 flex flex-col justify-center relative overflow-hidden shadow-2xl border border-white/5 group hover:scale-[1.01] transition-transform">
+                <Building2 size={160} className="absolute -bottom-8 -right-8 opacity-5 group-hover:opacity-10 transition-opacity rotate-12" />
                 <div className="relative">
-                  <p className="text-[10px] font-black uppercase opacity-60 tracking-[0.3em] mb-2 leading-none">Valeur Finale Estimée</p>
-                  <p className="text-5xl font-black text-emerald-400 mb-6 tracking-tighter leading-none">
-                    {formatEuro(calculations.beneficeAnnuel * 20 + calculations.investissementTotal)}
+                  <p className="text-[10px] font-black uppercase text-indigo-400 tracking-[0.4em] mb-4">Valeur du Projet à 20 ans</p>
+                  <p className="text-5xl font-black text-white mb-8 tracking-tighter leading-none">
+                    <span className="text-emerald-400 select-none">≈</span> {formatEuro(calculations.beneficeAnnuel * 20 + calculations.investissementTotal).replace('€', '')}<span className="text-2xl ml-1 opacity-50 font-normal">€</span>
                   </p>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest opacity-60">
-                      <span>Investissement</span>
-                      <span>-{formatEuro(activeSim.data.apport)}</span>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                      <span>Mise à Terme</span>
+                      <span className="text-rose-400">-{formatEuro(activeSim.data.apport)}</span>
                     </div>
-                    <div className="flex justify-between items-center text-xs font-black text-emerald-300 bg-white/5 p-3 rounded-xl border border-white/10 uppercase tracking-tighter">
-                      <span>Cashflow Total (20 ans)</span>
-                      <span>+{formatEuro(calculations.beneficeAnnuel * 20)}</span>
+                    <div className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors cursor-default">
+                      <div className="flex flex-col">
+                        <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-1">Plus-Value Totale</span>
+                        <span className="text-xl font-black text-white">{formatEuro(calculations.beneficeAnnuel * 20)}</span>
+                      </div>
+                      <TrendingUp size={24} className="text-emerald-500/50" />
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-[2rem] border border-slate-200 p-6 flex gap-6 h-40 shrink-0 shadow-sm relative group overflow-hidden">
-                <div className="w-24 shrink-0 relative">
+              {/* Breakdown Card */}
+              <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-6 h-48 flex gap-8 shrink-0 shadow-lg relative overflow-hidden">
+                <div className="w-28 shrink-0 relative flex items-center">
                   <Doughnut
                     data={{
                       labels: ['Fixes', 'Charge'],
-                      datasets: [{ data: [calculations.totalChargesAnnuelles - (activeSim.data.electricite + activeSim.data.internet + activeSim.data.eau), (activeSim.data.electricite + activeSim.data.internet + activeSim.data.eau)], backgroundColor: ['#3b82f6', '#f59e0b'], borderWidth: 0, hoverOffset: 4 }]
+                      datasets: [{
+                        data: [calculations.totalChargesAnnuelles - (activeSim.data.electricite + activeSim.data.internet + activeSim.data.eau), (activeSim.data.electricite + activeSim.data.internet + activeSim.data.eau)],
+                        backgroundColor: ['#6366f1', '#f59e0b'],
+                        borderWidth: 0,
+                        hoverOffset: 6,
+                        borderRadius: 4
+                      }]
                     }}
-                    options={{ cutout: '75%', plugins: { legend: { display: false } } }}
+                    options={{ cutout: '78%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }}
                   />
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <ShieldCheck size={16} className="text-slate-200" />
+                    <ShieldCheck size={18} className="text-slate-700" />
                   </div>
                 </div>
-                <div className="flex-1 flex flex-col justify-center gap-2 min-w-0">
-                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Charges Annuelles</p>
-                  <DetailRow label="Copro" value={formatEuro(activeSim.data.chargesCopro)} color="bg-blue-500" />
-                  <DetailRow label="Taxes" value={formatEuro(activeSim.data.taxeFonciere + activeSim.data.cfe)} color="bg-slate-500" />
-                  <DetailRow label="Énergie/Web" value={formatEuro(activeSim.data.internet + activeSim.data.eau + activeSim.data.electricite)} color="bg-amber-500" />
+                <div className="flex-1 flex flex-col justify-center gap-3">
+                  <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-1">Détails Charges Annuelles</p>
+                  <div className="space-y-2">
+                    <MiniRow label="Copro" value={formatEuro(activeSim.data.chargesCopro)} dot="indigo" />
+                    <MiniRow label="Fiscalité" value={formatEuro(activeSim.data.taxeFonciere + activeSim.data.cfe)} dot="slate" />
+                    <MiniRow label="Exploit" value={formatEuro(activeSim.data.internet + activeSim.data.eau + activeSim.data.electricite)} dot="amber" />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </main>
+
+      <footer className="relative w-full z-10 py-3 px-8 text-[10px] font-black uppercase tracking-widest text-slate-600 flex justify-between items-center border-t border-white/5 bg-slate-950/20 backdrop-blur-md shrink-0">
+        <div className="flex gap-6 items-center">
+          <span>Performance Immobilière &copy; 2024</span>
+          <span className="flex items-center gap-1.5 text-indigo-500/50"><Info size={12} /> Basé sur frais réels et simulations bancaires</span>
+        </div>
+        <div className="flex gap-4">
+          <a href="#" className="hover:text-indigo-400 transition-colors">Documentation</a>
+          <a href="#" className="hover:text-amber-400 transition-colors flex items-center gap-1">Données sécurisées</a>
+        </div>
+      </footer>
     </div>
   );
 }
 
-function SectionBox({ title, icon, children }) {
+// --- SUB COMPONENTS ---
+
+function GlassSection({ title, icon, children }) {
   return (
-    <div className="bg-white rounded-[1.5rem] border border-slate-200 p-4 shadow-sm shrink-0 transition-all hover:shadow-md">
-      <h3 className="text-[11px] font-black text-slate-900 border-b border-slate-100 pb-3 mb-4 flex items-center justify-between uppercase tracking-[0.15em]">
-        <div className="flex items-center gap-2">{icon}{title}</div>
-        <ChevronDown size={14} className="text-slate-300" />
+    <div className="bg-slate-900/40 backdrop-blur-xl rounded-[2rem] border border-white/5 p-6 shadow-xl transition-all hover:border-white/10 group">
+      <h3 className="text-xs font-black text-white border-b border-white/5 pb-4 mb-5 flex items-center justify-between uppercase tracking-[0.2em] group-hover:text-indigo-400 transition-colors">
+        <div className="flex items-center gap-3">{icon}{title}</div>
+        <ChevronDown size={16} className="text-slate-600 transition-transform group-hover:translate-y-0.5" />
       </h3>
-      <div className="space-y-3">{children}</div>
+      <div className="space-y-4">{children}</div>
     </div>
   );
 }
 
-function MiniInput({ label, value, onChange }) {
+function PremiumInput({ label, value, onChange }) {
   return (
-    <div className="flex flex-col gap-1.5 group">
-      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none px-1 group-focus-within:text-emerald-500 transition-colors">{label}</label>
+    <div className="flex flex-col gap-2 group/input">
+      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none px-1 group-focus-within/input:text-indigo-400 transition-colors">{label}</label>
       <div className="relative">
         <input
           type="number"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full bg-slate-50 border-2 border-transparent rounded-xl p-2.5 text-xs font-black text-slate-900 focus:ring-0 focus:border-emerald-500/20 focus:bg-white transition-all shadow-inner"
+          className="w-full bg-slate-500/5 border border-white/5 rounded-xl p-3 text-sm font-black text-white focus:ring-2 focus:ring-indigo-500/20 focus:bg-white/10 transition-all shadow-inner"
         />
       </div>
     </div>
   );
 }
 
-function KPIBox({ label, value, color, highlight = false, icon }) {
+function HeroKPI({ label, value, color, icon, highlight = false }) {
   const colors = {
-    emerald: 'text-emerald-600', blue: 'text-blue-600', slate: 'text-slate-900', red: 'text-red-500'
+    emerald: 'text-emerald-400', indigo: 'text-indigo-400', slate: 'text-slate-400', rose: 'text-rose-400'
   };
+  const bgColors = {
+    emerald: 'bg-emerald-500/10', indigo: 'bg-indigo-500/10', slate: 'bg-slate-500/10', rose: 'bg-rose-500/10'
+  };
+
   return (
-    <div className={`bg-white rounded-[2rem] border border-slate-200 p-5 flex flex-col justify-center shadow-sm relative overflow-hidden group hover:-translate-y-1 transition-all duration-300 ${highlight ? 'ring-2 ring-emerald-500 shadow-xl shadow-emerald-50' : ''}`}>
-      <div className="flex items-center justify-between mb-2">
-        <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] leading-none">{label}</p>
-        <div className={`opacity-20 group-hover:opacity-100 group-hover:scale-110 transition-all ${colors[color]}`}>
-          {icon}
-        </div>
+    <div className={`bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/5 p-6 flex flex-col justify-center relative shadow-xl hover:-translate-y-2 transition-all duration-500 group overflow-hidden ${highlight ? 'ring-2 ring-emerald-500/30' : ''}`}>
+      <div className={`absolute top-0 right-0 p-8 opacity-5 scale-150 rotate-12 transition-transform group-hover:rotate-0 ${colors[color]}`}>
+        {React.cloneElement(icon, { size: 64 })}
       </div>
-      <p className={`text-3xl font-black tracking-tighter ${colors[color]}`}>{value}</p>
+      <div className="relative">
+        <div className="flex items-center gap-2 mb-3">
+          <div className={`p-1.5 rounded-lg ${bgColors[color]} ${colors[color]}`}>
+            {React.cloneElement(icon, { size: 14 })}
+          </div>
+          <p className="text-[9px] font-black uppercase text-slate-500 tracking-[0.25em] leading-none">{label}</p>
+        </div>
+        <p className={`text-3xl font-black tracking-tighter ${colors[color]}`}>{value}</p>
+      </div>
     </div>
   );
 }
 
-function DetailRow({ label, value, color }) {
+function Toggle({ active, onToggle }) {
   return (
-    <div className="flex justify-between items-center text-[10px] gap-2">
-      <div className="flex items-center gap-2 truncate">
-        <div className={`w-1.5 h-1.5 rounded-full ${color}`}></div>
-        <span className="font-bold text-slate-500 truncate uppercase tracking-tighter">{label}</span>
+    <button
+      onClick={onToggle}
+      className={`w-10 h-5 rounded-full transition-all relative ${active ? 'bg-indigo-600' : 'bg-slate-700'}`}
+    >
+      <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow-md transition-all ${active ? 'left-6' : 'left-1'}`} />
+    </button>
+  );
+}
+
+function LegendItem({ dot, label, transparent = false }) {
+  return (
+    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-500 tracking-tighter shrink-0">
+      <div className={`w-2.5 h-1.5 rounded-full ${dot} ${transparent ? 'opacity-50' : ''}`} />
+      {label}
+    </div>
+  );
+}
+
+function MiniRow({ label, value, dot }) {
+  const dotColors = { indigo: 'bg-indigo-500', slate: 'bg-slate-500', amber: 'bg-amber-500' };
+  return (
+    <div className="flex justify-between items-center text-[10px] group transition-all hover:translate-x-1">
+      <div className="flex items-center gap-2">
+        <div className={`w-1.5 h-1.5 rounded-full ${dotColors[dot]}`} />
+        <span className="font-bold text-slate-500 group-hover:text-white transition-colors uppercase tracking-tighter">{label}</span>
       </div>
-      <span className="font-black text-slate-900 shrink-0">{value}</span>
+      <span className="font-black text-white group-hover:text-indigo-400 transition-colors">{value}</span>
     </div>
   );
 }
