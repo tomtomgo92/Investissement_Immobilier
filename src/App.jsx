@@ -13,6 +13,7 @@ import {
 import { Line, Doughnut } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { calculateInvestmentTotal, calculateLoanAmount, calculateMonthlyPayment } from './utils/finance';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend);
 
@@ -83,16 +84,14 @@ export default function App() {
 
   const calculations = useMemo(() => {
     const d = activeSim.data;
-    const investTotal = d.prixAchat + d.travaux + d.fraisNotaire;
-    const loanAmount = Math.max(0, investTotal - d.apport);
+    const investTotal = calculateInvestmentTotal(d.prixAchat, d.travaux, d.fraisNotaire);
+    const loanAmount = calculateLoanAmount(investTotal, d.apport);
     const rMensuel = d.tauxInteret / 100 / 12;
     const nMensuel = d.dureeCredit * 12;
 
     let mCredit = d.mensualiteCredit;
     if (d.autoCredit) {
-      if (nMensuel > 0) {
-        mCredit = rMensuel === 0 ? loanAmount / nMensuel : (loanAmount * rMensuel * Math.pow(1 + rMensuel, nMensuel)) / (Math.pow(1 + rMensuel, nMensuel) - 1);
-      } else mCredit = 0;
+      mCredit = calculateMonthlyPayment(loanAmount, d.tauxInteret, d.dureeCredit);
     }
 
     const recetteMensuelleBrute = d.loyers.reduce((acc, curr) => acc + curr, 0);
