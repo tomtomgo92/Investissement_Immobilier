@@ -3,9 +3,10 @@ import {
   Calculator, Home, Euro, Percent, Users, Receipt, CreditCard, ShieldCheck,
   TrendingUp, Landmark, ArrowRightLeft, Plus, Building2,
   Download, Share2, ChevronDown, Sparkles, CheckCircle2,
-  Wallet, X, AlertTriangle, BarChart3, LayoutDashboard, Eye, EyeOff, Info, Scale
+  Wallet, X, AlertTriangle, BarChart3, LayoutDashboard, Eye, EyeOff, Scale
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
+import InfoTooltip from './components/InfoTooltip';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement,
   BarElement, Title, Tooltip, Legend, ArcElement,
@@ -307,9 +308,6 @@ function GlassSection({ title, icon, children }) {
 }
 function PremiumInput({ label, value, onChange, tooltip }) {
   return <div className="flex flex-col gap-2 group/input"><div className="flex justify-between items-center"><label className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none px-1 group-focus-within/input:text-indigo-400 transition-colors">{label}</label>{tooltip && <InfoTooltip text={tooltip} />}</div><input type="number" value={value} onChange={(e) => onChange(e.target.value)} className="w-full bg-slate-500/5 border border-white/5 rounded-xl p-3 text-sm font-black text-white focus:ring-2 focus:ring-indigo-500/20 focus:bg-white/10 transition-all font-mono" /></div>;
-}
-function InfoTooltip({ text }) {
-  return <div className="group relative cursor-help"><Info size={12} className="text-slate-600 hover:text-indigo-400 transition-colors" /><div className="absolute right-0 bottom-full mb-2 px-3 py-2 bg-slate-900 text-white text-[10px] w-48 rounded-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity border border-white/10 shadow-xl z-50 text-center leading-relaxed">{text}</div></div>;
 }
 function HeroKPI({ label, value, color, icon, highlight = false, sub }) {
   const c = { emerald: 'text-emerald-400', indigo: 'text-indigo-400', slate: 'text-slate-400', rose: 'text-rose-400' };
