@@ -5,7 +5,6 @@ import {
   Download, Share2, ChevronDown, Sparkles, CheckCircle2,
   Wallet, X, AlertTriangle, BarChart3, LayoutDashboard, Eye, EyeOff, Info, Scale
 } from 'lucide-react';
-import { v4 as uuidv4 } from 'uuid';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement,
   BarElement, Title, Tooltip, Legend, ArcElement,
@@ -13,30 +12,9 @@ import {
 import { Line, Doughnut } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { INITIAL_DATA, INITIAL_CHARGES, TMI_OPTIONS, calculateResults, updateSimulationData } from './utils/finance';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend);
-
-const INITIAL_CHARGES = [
-  { id: uuidv4(), name: 'Copropriété', value: 2733 },
-  { id: uuidv4(), name: 'Taxe Foncière', value: 1170 },
-  { id: uuidv4(), name: 'Assurance PNO', value: 159.81 },
-  { id: uuidv4(), name: 'Électricité', value: 600 },
-  { id: uuidv4(), name: 'Eau', value: 696 },
-  { id: uuidv4(), name: 'Internet', value: 420 },
-  { id: uuidv4(), name: 'CFE', value: 354 },
-  { id: uuidv4(), name: 'Comptabilité', value: 289 },
-];
-
-const INITIAL_DATA = {
-  prixAchat: 92000, travaux: 20000, fraisNotaire: 7360, apport: 15000,
-  tauxInteret: 3.85, dureeCredit: 20, mensualiteCredit: 567,
-  autoCredit: true, nbColocs: 3, loyers: [493, 493, 493],
-  charges: [...INITIAL_CHARGES],
-  vacanceLocative: 5,
-  tmi: 30, // Tranche Marginale d'Imposition default
-};
-
-const TMI_OPTIONS = [0, 11, 30, 41, 45];
 
 export default function App() {
   // --- State Initialization with Persistence & Share Logic ---
@@ -59,7 +37,7 @@ export default function App() {
     if (saved) return JSON.parse(saved);
 
     // 3. Default fallback
-    return [{ id: uuidv4(), name: 'Appart Lyon 3', data: { ...INITIAL_DATA } }];
+    return [{ id: crypto.randomUUID(), name: 'Appart Lyon 3', data: { ...INITIAL_DATA } }];
   });
 
   const [activeSimId, setActiveSimId] = useState(() => simulations[0]?.id || null);
@@ -81,70 +59,13 @@ export default function App() {
   const reportRef = useRef(null);
   const activeSim = simulations.find(s => s.id === activeSimId) || simulations[0];
 
-  const calculations = useMemo(() => {
-    const d = activeSim.data;
-    const investTotal = d.prixAchat + d.travaux + d.fraisNotaire;
-    const loanAmount = Math.max(0, investTotal - d.apport);
-    const rMensuel = d.tauxInteret / 100 / 12;
-    const nMensuel = d.dureeCredit * 12;
+  const calculations = useMemo(() => calculateResults(activeSim.data), [activeSim]);
 
-    let mCredit = d.mensualiteCredit;
-    if (d.autoCredit) {
-      if (nMensuel > 0) {
-        mCredit = rMensuel === 0 ? loanAmount / nMensuel : (loanAmount * rMensuel * Math.pow(1 + rMensuel, nMensuel)) / (Math.pow(1 + rMensuel, nMensuel) - 1);
-      } else mCredit = 0;
-    }
-
-    const recetteMensuelleBrute = d.loyers.reduce((acc, curr) => acc + curr, 0);
-    const recetteMensuelleRéelle = recetteMensuelleBrute * (1 - (d.vacanceLocative / 100));
-    const recetteAnnuelle = recetteMensuelleRéelle * 12;
-    const totalChargesAnnuelles = d.charges.reduce((acc, c) => acc + c.value, 0);
-    const creditAnnee = mCredit * 12;
-
-    const rBrute = investTotal > 0 ? ((recetteMensuelleBrute * 12) / investTotal) * 100 : 0;
-    const rNet = investTotal > 0 ? ((recetteAnnuelle - totalChargesAnnuelles) / investTotal) * 100 : 0;
-    const beneficeAn = recetteAnnuelle - (creditAnnee + totalChargesAnnuelles);
-    const cashflowM = beneficeAn / 12;
-
-    // --- Tax Calculation (Simplified LMNP Réel) ---
-    // Base Imposable = Loyers - Charges - Intérêts - Amortissement
-    // Amortissement Estimation: (85% Prix + FaN + Travaux) / 25 ans approx
-    const amortissementAnnuel = ((d.prixAchat * 0.85) + d.fraisNotaire + d.travaux) / 25;
-    // Intérêts Annuels (Approx for average year): Loan * Rate (Roughly)
-    // Better: Use average interest over duration or 1st year interest. Let's use 1st year for simplicity/conservatism.
-    const interetsAnnuels = loanAmount * (d.tauxInteret / 100);
-
-    const resultatFiscal = Math.max(0, recetteAnnuelle - totalChargesAnnuelles - interetsAnnuels - amortissementAnnuel);
-    const impots = resultatFiscal * ((d.tmi + 17.2) / 100); // TMI + CSG
-    const cashflowNetNet = cashflowM - (impots / 12);
-
-    const years = Array.from({ length: 21 }, (_, i) => i);
-    const projectionData = years.map(year => {
-      const months = year * 12;
-      let remainingDebt = loanAmount;
-      if (rMensuel > 0 && months > 0) {
-        remainingDebt = loanAmount * (Math.pow(1 + rMensuel, nMensuel) - Math.pow(1 + rMensuel, months)) / (Math.pow(1 + rMensuel, nMensuel) - 1);
-      } else if (months > 0) {
-        remainingDebt = Math.max(0, loanAmount - (mCredit * months));
-      }
-      if (year > d.dureeCredit) remainingDebt = 0;
-      const cumCashflow = beneficeAn * year; // Uses simple cashflow for projection, ignoring tax variation for simplicity graph
-      const netWorth = (d.prixAchat + d.travaux) - remainingDebt + cumCashflow;
-      return { year, remainingDebt, cumCashflow, netWorth, cumCharges: totalChargesAnnuelles * year };
-    });
-
-    return {
-      investTotal, loanAmount, recetteMensuelleBrute, recetteAnnuelle, totalChargesAnnuelles,
-      creditAnnee, rBrute, rNet, beneficeAn, cashflowM, mCredit, projectionData, recetteMensuelleRéelle,
-      impots, cashflowNetNet
-    };
-  }, [activeSim]);
-
-  const updateData = (f, v) => setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, [f]: parseFloat(v) || 0, ...(f === 'prixAchat' && { fraisNotaire: Math.round(parseFloat(v) * 0.08) }) } } : s));
+  const updateData = (f, v) => setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: updateSimulationData(s.data, f, v) } : s));
   const updateCharge = (id, field, value) => {
     setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, charges: s.data.charges.map(c => c.id === id ? { ...c, [field]: field === 'value' ? (parseFloat(value) || 0) : value } : c) } } : s));
   };
-  const addCharge = () => setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, charges: [...s.data.charges, { id: uuidv4(), name: 'Nouvelle Charge', value: 0 }] } } : s));
+  const addCharge = () => setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, charges: [...s.data.charges, { id: crypto.randomUUID(), name: 'Nouvelle Charge', value: 0 }] } } : s));
   const removeCharge = (id) => setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, charges: s.data.charges.filter(c => c.id !== id) } } : s));
 
   const exportSyntheticPDF = async () => {
@@ -187,7 +108,7 @@ export default function App() {
             {simulations.map(sim => (
               <button key={sim.id} onClick={() => setActiveSimId(sim.id)} className={`px-4 sm:px-5 py-2 rounded-xl text-xs font-black transition-all whitespace-nowrap ${activeSimId === sim.id ? 'bg-white text-slate-900 shadow-xl' : 'text-slate-500 hover:text-slate-300'}`}>{sim.name}</button>
             ))}
-            <button onClick={() => { const n = { id: uuidv4(), name: `Projet ${simulations.length + 1}`, data: { ...INITIAL_DATA, charges: JSON.parse(JSON.stringify(INITIAL_CHARGES)) } }; setSimulations([...simulations, n]); setActiveSimId(n.id); }} className="p-2 text-indigo-400"><Plus size={18} /></button>
+            <button onClick={() => { const n = { id: crypto.randomUUID(), name: `Projet ${simulations.length + 1}`, data: { ...INITIAL_DATA, charges: JSON.parse(JSON.stringify(INITIAL_CHARGES)) } }; setSimulations([...simulations, n]); setActiveSimId(n.id); }} className="p-2 text-indigo-400"><Plus size={18} /></button>
           </div>
           <div className="flex gap-2 w-full sm:w-auto justify-end">
             <button onClick={shareSimulation} className="bg-white/5 text-white p-2.5 rounded-xl border border-white/10 hover:bg-white/10 transition-all text-xs font-black uppercase tracking-widest flex items-center gap-2 justify-center flex-1 sm:flex-initial" title="Copier le lien de partage">
