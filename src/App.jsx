@@ -13,6 +13,7 @@ import {
 import { Line, Doughnut } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { calculateRentalYields } from './utils/finance';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend);
 
@@ -101,8 +102,13 @@ export default function App() {
     const totalChargesAnnuelles = d.charges.reduce((acc, c) => acc + c.value, 0);
     const creditAnnee = mCredit * 12;
 
-    const rBrute = investTotal > 0 ? ((recetteMensuelleBrute * 12) / investTotal) * 100 : 0;
-    const rNet = investTotal > 0 ? ((recetteAnnuelle - totalChargesAnnuelles) / investTotal) * 100 : 0;
+    const { rBrute, rNet } = calculateRentalYields({
+      investTotal,
+      monthlyGrossRent: recetteMensuelleBrute,
+      annualRealRent: recetteAnnuelle,
+      annualCharges: totalChargesAnnuelles
+    });
+
     const beneficeAn = recetteAnnuelle - (creditAnnee + totalChargesAnnuelles);
     const cashflowM = beneficeAn / 12;
 
