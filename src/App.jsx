@@ -13,6 +13,7 @@ import {
 import { Line, Doughnut } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { encodeShareCode, decodeShareCode } from './utils/share';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend);
 
@@ -45,11 +46,12 @@ export default function App() {
     if (window.location.hash.startsWith('#share=')) {
       try {
         const encoded = window.location.hash.replace('#share=', '');
-        const json = atob(encoded);
-        const sharedSim = JSON.parse(json);
-        // Clean URL
-        window.history.replaceState(null, '', window.location.pathname);
-        return [sharedSim]; // Load shared sim as the only one
+        const sharedSim = decodeShareCode(encoded);
+        if (sharedSim) {
+          // Clean URL
+          window.history.replaceState(null, '', window.location.pathname);
+          return [sharedSim]; // Load shared sim as the only one
+        }
       } catch (e) {
         console.error("Failed to load shared simulation", e);
       }
@@ -157,8 +159,7 @@ export default function App() {
   };
 
   const shareSimulation = () => {
-    const json = JSON.stringify(activeSim);
-    const encoded = btoa(json);
+    const encoded = encodeShareCode(activeSim);
     const url = `${window.location.origin}${window.location.pathname}#share=${encoded}`;
     navigator.clipboard.writeText(url).then(() => alert('Lien copié dans le presse-papier ! Envoyer ce lien partage cette simulation.'));
   };
