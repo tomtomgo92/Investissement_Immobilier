@@ -1,9 +1,11 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import PremiumInput from './components/PremiumInput';
+import InfoTooltip from './components/InfoTooltip';
 import {
   Calculator, Home, Euro, Percent, Users, Receipt, CreditCard, ShieldCheck,
   TrendingUp, Landmark, ArrowRightLeft, Plus, Building2,
   Download, Share2, ChevronDown, Sparkles, CheckCircle2,
-  Wallet, X, AlertTriangle, BarChart3, LayoutDashboard, Eye, EyeOff, Info, Scale
+  Wallet, X, AlertTriangle, BarChart3, LayoutDashboard, Eye, EyeOff, Scale
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -304,12 +306,6 @@ export default function App() {
 // --- UI COMPONENTS ---
 function GlassSection({ title, icon, children }) {
   return <div className="bg-slate-900/40 backdrop-blur-xl rounded-[2rem] border border-white/5 p-6 shadow-xl transition-all group shrink-0 w-full"><h3 className="text-xs font-black text-white border-b border-white/5 pb-4 mb-5 flex items-center justify-between uppercase tracking-[0.2em] group-hover:text-indigo-400 transition-colors"><div className="flex items-center gap-3">{icon}{title}</div></h3><div className="space-y-4">{children}</div></div>;
-}
-function PremiumInput({ label, value, onChange, tooltip }) {
-  return <div className="flex flex-col gap-2 group/input"><div className="flex justify-between items-center"><label className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none px-1 group-focus-within/input:text-indigo-400 transition-colors">{label}</label>{tooltip && <InfoTooltip text={tooltip} />}</div><input type="number" value={value} onChange={(e) => onChange(e.target.value)} className="w-full bg-slate-500/5 border border-white/5 rounded-xl p-3 text-sm font-black text-white focus:ring-2 focus:ring-indigo-500/20 focus:bg-white/10 transition-all font-mono" /></div>;
-}
-function InfoTooltip({ text }) {
-  return <div className="group relative cursor-help"><Info size={12} className="text-slate-600 hover:text-indigo-400 transition-colors" /><div className="absolute right-0 bottom-full mb-2 px-3 py-2 bg-slate-900 text-white text-[10px] w-48 rounded-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity border border-white/10 shadow-xl z-50 text-center leading-relaxed">{text}</div></div>;
 }
 function HeroKPI({ label, value, color, icon, highlight = false, sub }) {
   const c = { emerald: 'text-emerald-400', indigo: 'text-indigo-400', slate: 'text-slate-400', rose: 'text-rose-400' };
