@@ -1,9 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
-  Calculator, Home, Euro, Percent, Users, Receipt, CreditCard, ShieldCheck,
-  TrendingUp, Landmark, ArrowRightLeft, Plus, Building2,
-  Download, Share2, ChevronDown, Sparkles, CheckCircle2,
-  Wallet, X, AlertTriangle, BarChart3, LayoutDashboard, Eye, EyeOff, Info, Scale
+  Home, Euro, Users, Receipt, TrendingUp, Landmark, ArrowRightLeft, Plus,
+  Building2, Download, Share2, Wallet, X, BarChart3, Eye, EyeOff, Info, Scale
 } from 'lucide-react';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement,
