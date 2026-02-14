@@ -13,6 +13,7 @@ import {
 import { Line, Doughnut } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import GlassSection from './components/GlassSection';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend);
 
@@ -302,9 +303,6 @@ export default function App() {
 }
 
 // --- UI COMPONENTS ---
-function GlassSection({ title, icon, children }) {
-  return <div className="bg-slate-900/40 backdrop-blur-xl rounded-[2rem] border border-white/5 p-6 shadow-xl transition-all group shrink-0 w-full"><h3 className="text-xs font-black text-white border-b border-white/5 pb-4 mb-5 flex items-center justify-between uppercase tracking-[0.2em] group-hover:text-indigo-400 transition-colors"><div className="flex items-center gap-3">{icon}{title}</div></h3><div className="space-y-4">{children}</div></div>;
-}
 function PremiumInput({ label, value, onChange, tooltip }) {
   return <div className="flex flex-col gap-2 group/input"><div className="flex justify-between items-center"><label className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none px-1 group-focus-within/input:text-indigo-400 transition-colors">{label}</label>{tooltip && <InfoTooltip text={tooltip} />}</div><input type="number" value={value} onChange={(e) => onChange(e.target.value)} className="w-full bg-slate-500/5 border border-white/5 rounded-xl p-3 text-sm font-black text-white focus:ring-2 focus:ring-indigo-500/20 focus:bg-white/10 transition-all font-mono" /></div>;
 }
