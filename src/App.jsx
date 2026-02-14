@@ -13,6 +13,7 @@ import {
 import { Line, Doughnut } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import Toggle from './components/Toggle';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend);
 
@@ -315,9 +316,6 @@ function HeroKPI({ label, value, color, icon, highlight = false, sub }) {
   const c = { emerald: 'text-emerald-400', indigo: 'text-indigo-400', slate: 'text-slate-400', rose: 'text-rose-400' };
   const bg = { emerald: 'bg-emerald-500/10', indigo: 'bg-indigo-500/10', slate: 'bg-slate-500/10', rose: 'bg-rose-500/10' };
   return <div className={`bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/5 p-4 sm:p-6 flex flex-col justify-center relative shadow-xl hover:-translate-y-1 transition-all duration-500 group overflow-hidden ${highlight ? 'ring-2 ring-emerald-500/30' : ''}`}><div className="relative"><div className="flex items-center gap-2 mb-2"><div className={`p-1.5 rounded-lg ${bg[color]} ${c[color]}`}>{React.cloneElement(icon, { size: 14 })}</div><p className="text-[9px] font-black uppercase text-slate-500 tracking-widest truncate">{label}</p></div><p className={`text-2xl sm:text-3xl font-black tracking-tighter truncate ${c[color]}`}>{value}</p>{sub && <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-1 italic truncate">{sub}</p>}</div></div>;
-}
-function Toggle({ active, onToggle }) {
-  return <button onClick={onToggle} className={`w-10 h-5 rounded-full transition-all relative ${active ? 'bg-indigo-600' : 'bg-slate-700'}`}><div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow-md transition-all ${active ? 'left-6' : 'left-1'}`} /></button>;
 }
 function DimensionToggle({ active, onClick, dot, label }) {
   return <button onClick={onClick} className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border flex items-center gap-2 transition-all ${active ? 'bg-white/10 border-indigo-500 text-white' : 'border-white/5 text-slate-500 opacity-50 hover:opacity-100 hover:bg-white/5'}`}><div className={`w-2 h-2 rounded-full ${dot} ${!active ? 'grayscale' : ''}`} /><span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest hidden sm:inline">{label}</span><span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest sm:hidden">{label.slice(0, 4)}</span>{active ? <Eye size={12} className="ml-1 opacity-50" /> : <EyeOff size={12} className="ml-1 opacity-20" />}</button>;
