@@ -24,17 +24,42 @@ export const calculateNotaryFee = (purchasePrice) => {
   return Math.round(purchasePrice * 0.08);
 };
 
+export const calculateInvestmentTotal = (prixAchat, travaux, fraisNotaire) => {
+  return prixAchat + travaux + fraisNotaire;
+};
+
+export const calculateLoanAmount = (investTotal, apport) => {
+  return Math.max(0, investTotal - apport);
+};
+
+export const calculateMonthlyPayment = (loanAmount, tauxInteret, dureeCredit) => {
+  if (dureeCredit <= 0) return 0;
+  if (loanAmount <= 0) return 0;
+
+  const rMensuel = tauxInteret / 100 / 12;
+  const nMensuel = dureeCredit * 12;
+
+  if (rMensuel === 0) return loanAmount / nMensuel;
+
+  return (loanAmount * rMensuel * Math.pow(1 + rMensuel, nMensuel)) / (Math.pow(1 + rMensuel, nMensuel) - 1);
+};
+
+/**
+ * Calculates the gross and net rental yields.
+ */
+export function calculateRentalYields({ investTotal, monthlyGrossRent, annualRealRent, annualCharges }) {
+  const rBrute = investTotal > 0 ? ((monthlyGrossRent * 12) / investTotal) * 100 : 0;
+  const rNet = investTotal > 0 ? ((annualRealRent - annualCharges) / investTotal) * 100 : 0;
+  return { rBrute, rNet };
+}
+
 export const calculateResults = (d) => {
-  const investTotal = d.prixAchat + d.travaux + d.fraisNotaire;
-  const loanAmount = Math.max(0, investTotal - d.apport);
-  const rMensuel = d.tauxInteret / 100 / 12;
-  const nMensuel = d.dureeCredit * 12;
+  const investTotal = calculateInvestmentTotal(d.prixAchat, d.travaux, d.fraisNotaire);
+  const loanAmount = calculateLoanAmount(investTotal, d.apport);
 
   let mCredit = d.mensualiteCredit;
   if (d.autoCredit) {
-    if (nMensuel > 0) {
-      mCredit = rMensuel === 0 ? loanAmount / nMensuel : (loanAmount * rMensuel * Math.pow(1 + rMensuel, nMensuel)) / (Math.pow(1 + rMensuel, nMensuel) - 1);
-    } else mCredit = 0;
+    mCredit = calculateMonthlyPayment(loanAmount, d.tauxInteret, d.dureeCredit);
   }
 
   const recetteMensuelleBrute = d.loyers.reduce((acc, curr) => acc + curr, 0);
@@ -43,8 +68,13 @@ export const calculateResults = (d) => {
   const totalChargesAnnuelles = d.charges.reduce((acc, c) => acc + c.value, 0);
   const creditAnnee = mCredit * 12;
 
-  const rBrute = investTotal > 0 ? ((recetteMensuelleBrute * 12) / investTotal) * 100 : 0;
-  const rNet = investTotal > 0 ? ((recetteAnnuelle - totalChargesAnnuelles) / investTotal) * 100 : 0;
+  const { rBrute, rNet } = calculateRentalYields({
+    investTotal,
+    monthlyGrossRent: recetteMensuelleBrute,
+    annualRealRent: recetteAnnuelle,
+    annualCharges: totalChargesAnnuelles
+  });
+
   const beneficeAn = recetteAnnuelle - (creditAnnee + totalChargesAnnuelles);
   const cashflowM = beneficeAn / 12;
 
@@ -57,6 +87,9 @@ export const calculateResults = (d) => {
   const cashflowNetNet = cashflowM - (impots / 12);
 
   const years = Array.from({ length: 21 }, (_, i) => i);
+  const rMensuel = d.tauxInteret / 100 / 12;
+  const nMensuel = d.dureeCredit * 12;
+
   const projectionData = years.map(year => {
     const months = year * 12;
     let remainingDebt = loanAmount;
@@ -88,3 +121,4 @@ export const updateSimulationData = (data, field, value) => {
 
   return newData;
 };
+

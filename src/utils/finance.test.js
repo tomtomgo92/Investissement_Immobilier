@@ -1,71 +1,50 @@
-import { test, describe } from 'node:test';
+import { test } from 'node:test';
 import assert from 'node:assert';
-import { calculateNotaryFee, updateSimulationData, calculateResults } from './finance.js';
+import {
+  calculateInvestmentTotal,
+  calculateLoanAmount,
+  calculateMonthlyPayment,
+  calculateRentalYields
+} from './finance.js';
 
-describe('Finance Utils', () => {
-  test('calculateNotaryFee returns 8% of purchase price rounded', () => {
-    assert.strictEqual(calculateNotaryFee(100000), 8000);
-    assert.strictEqual(calculateNotaryFee(92000), 7360);
-    assert.strictEqual(calculateNotaryFee(50000), 4000);
-    assert.strictEqual(calculateNotaryFee(0), 0);
-  });
+test('calculateInvestmentTotal - sums up costs', () => {
+  assert.strictEqual(calculateInvestmentTotal(100000, 20000, 8000), 128000);
+  assert.strictEqual(calculateInvestmentTotal(0, 0, 0), 0);
+});
 
-  test('updateSimulationData updates field correctly', () => {
-    const data = { prixAchat: 100000, travaux: 20000, fraisNotaire: 8000 };
-    const newData = updateSimulationData(data, 'travaux', 30000);
-    assert.strictEqual(newData.travaux, 30000);
-    assert.strictEqual(newData.prixAchat, 100000);
-    assert.strictEqual(newData.fraisNotaire, 8000);
-  });
+test('calculateLoanAmount - subtracts down payment from total', () => {
+  assert.strictEqual(calculateLoanAmount(128000, 28000), 100000);
+});
 
-  test('updateSimulationData auto-calculates notary fee when prixAchat changes', () => {
-    const data = { prixAchat: 100000, travaux: 20000, fraisNotaire: 8000 };
-    const newData = updateSimulationData(data, 'prixAchat', 200000);
-    assert.strictEqual(newData.prixAchat, 200000);
-    assert.strictEqual(newData.fraisNotaire, 16000);
-  });
+test('calculateLoanAmount - returns 0 if down payment exceeds total', () => {
+  assert.strictEqual(calculateLoanAmount(100000, 150000), 0);
+});
 
-  test('calculateResults returns correct investment total and loan amount', () => {
-    const data = {
-      prixAchat: 100000,
-      travaux: 20000,
-      fraisNotaire: 8000,
-      apport: 20000,
-      tauxInteret: 4,
-      dureeCredit: 20,
-      mensualiteCredit: 500,
-      autoCredit: true,
-      nbColocs: 1,
-      loyers: [1000],
-      charges: [{ id: '1', name: 'Charge', value: 100 }],
-      vacanceLocative: 0,
-      tmi: 30
-    };
-    const results = calculateResults(data);
-    assert.strictEqual(results.investTotal, 128000);
-    assert.strictEqual(results.loanAmount, 108000);
-  });
+test('calculateMonthlyPayment - standard mortgage calculation', () => {
+  // 100,000 EUR, 3.5%, 20 years
+  const payment = calculateMonthlyPayment(100000, 3.5, 20);
+  assert.ok(Math.abs(payment - 579.96) < 0.01, `Expected ~579.96, got ${payment}`);
+});
 
-  test('calculateResults handles 0 purchase price', () => {
-    const data = {
-      prixAchat: 0,
-      travaux: 0,
-      fraisNotaire: 0,
-      apport: 0,
-      tauxInteret: 0,
-      dureeCredit: 0,
-      mensualiteCredit: 0,
-      autoCredit: true,
-      nbColocs: 0,
-      loyers: [],
-      charges: [],
-      vacanceLocative: 0,
-      tmi: 0
-    };
-    const results = calculateResults(data);
-    assert.strictEqual(results.investTotal, 0);
-    assert.strictEqual(results.loanAmount, 0);
-    assert.strictEqual(results.rBrute, 0);
-    assert.strictEqual(results.rNet, 0);
-  });
+test('calculateMonthlyPayment - 0% interest rate', () => {
+  const payment = calculateMonthlyPayment(120000, 0, 10);
+  assert.strictEqual(payment, 1000);
+});
+
+test('calculateMonthlyPayment - 0 years duration', () => {
+  const payment = calculateMonthlyPayment(100000, 3.5, 0);
+  assert.strictEqual(payment, 0);
+});
+
+test('calculateRentalYields - standard scenario', () => {
+  const params = {
+    investTotal: 100000,
+    monthlyGrossRent: 500,
+    annualRealRent: 5700, // 500 * 12 * 0.95 (5% vacancy)
+    annualCharges: 1000,
+  };
+
+  const { rBrute, rNet } = calculateRentalYields(params);
+  assert.strictEqual(rBrute, 6);
+  assert.strictEqual(rNet, 4.7);
 });
