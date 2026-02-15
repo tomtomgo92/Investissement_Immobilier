@@ -38,6 +38,12 @@ const INITIAL_DATA = {
 
 const TMI_OPTIONS = [0, 11, 30, 41, 45];
 
+const euroFormatter = new Intl.NumberFormat('fr-FR', {
+  style: 'currency',
+  currency: 'EUR',
+  maximumFractionDigits: 0,
+});
+
 export default function App() {
   // --- State Initialization with Persistence & Share Logic ---
   const [simulations, setSimulations] = useState(() => {
@@ -165,7 +171,7 @@ export default function App() {
 
   const toggleDimension = (dim) => setVisibleDimensions(p => ({ ...p, [dim]: !p[dim] }));
 
-  const formatE = (v) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
+  const formatE = (v) => euroFormatter.format(v);
 
   return (
     <div className="min-h-screen w-full bg-[#0f172a] text-slate-300 flex flex-col items-center overflow-x-hidden font-sans">
