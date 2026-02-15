@@ -5,13 +5,14 @@ export default function DimensionToggle({ active, onClick, dot, label }) {
     return (
         <button
             onClick={onClick}
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border flex items-center gap-2 transition-all ${active ? 'bg-white/10 border-indigo-500 text-white' : 'border-white/5 text-slate-500 opacity-50 hover:opacity-100 hover:bg-white/5'
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all text-[10px] font-bold uppercase tracking-tight ${active
+                    ? 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-800 text-primary dark:text-white shadow-sm'
+                    : 'border-transparent text-slate-400 opacity-60 hover:opacity-100'
                 }`}
         >
-            <div className={`w-2 h-2 rounded-full ${dot} ${!active ? 'grayscale' : ''}`} />
-            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest hidden sm:inline">{label}</span>
-            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest sm:hidden">{label.slice(0, 4)}</span>
-            {active ? <Eye size={12} className="ml-1 opacity-50" /> : <EyeOff size={12} className="ml-1 opacity-20" />}
+            <span className={`w-2 h-2 rounded-full ${dot} ${!active ? 'grayscale' : ''}`} />
+            <span>{label}</span>
+            {active ? <Eye size={12} className="opacity-40" /> : <EyeOff size={12} className="opacity-20" />}
         </button>
     );
 }
