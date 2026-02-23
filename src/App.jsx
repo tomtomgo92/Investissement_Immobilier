@@ -30,6 +30,7 @@ import Toggle from './components/Toggle';
 import DimensionToggle from './components/DimensionToggle';
 import RepKPI from './components/RepKPI';
 import RepRow from './components/RepRow';
+import CalculationBreakdown from './components/CalculationBreakdown';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend);
 
@@ -96,16 +97,29 @@ export default function App() {
 
   const exportSyntheticPDF = async () => {
     setIsGenerating(true);
-    const canvas = await html2canvas(reportRef.current, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      windowWidth: 1200
-    });
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-    pdf.save(`Simu_${activeSim.name}.pdf`);
-    setIsGenerating(false);
+    try {
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        windowWidth: 1200,
+        onclone: (clonedDoc) => {
+          // Remove all styles/links to prevent oklch parsing errors
+          const styles = clonedDoc.getElementsByTagName('style');
+          for (let i = styles.length - 1; i >= 0; i--) styles[i].remove();
+          const links = clonedDoc.getElementsByTagName('link');
+          for (let i = links.length - 1; i >= 0; i--) links[i].remove();
+        }
+      });
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
+      pdf.save(`Simu_${activeSim.name}.pdf`);
+    } catch (err) {
+      console.error(err);
+      alert("Erreur PDF: " + err.message);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const shareSimulation = () => {
@@ -253,7 +267,7 @@ export default function App() {
               icon={<Receipt size={18} className="text-rose-500" />}
               rightElement={<button onClick={addCharge} className="text-accent hover:opacity-80"><PlusCircle size={20} /></button>}
             >
-              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+              <div className="space-y-3 pr-2">
                 {activeSim.data.charges.map((c) => (
                   <div key={c.id} className="group relative">
                     <div className="flex items-center gap-3">
@@ -292,7 +306,7 @@ export default function App() {
                 </div>
               }
             >
-              <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+              <div className="space-y-4 pr-2">
                 <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2">
                   <span>Unité</span>
                   <span>Loyer Mensuel</span>
@@ -337,7 +351,7 @@ export default function App() {
         </div>
 
         {/* Projection Chart */}
-        <section className="bg-white dark:bg-slate-900 p-8 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-8">
+        <section className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-widest text-accent mb-1 block">Analyse Patrimoniale</span>
@@ -388,6 +402,13 @@ export default function App() {
           </div>
         </section>
 
+        {/* Calculation Breakdown */}
+        <CalculationBreakdown
+          data={activeSim.data}
+          calculations={calculations}
+          formatE={formatE}
+        />
+
         <footer className="pt-12 pb-16 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6 text-slate-400 text-[10px] uppercase font-bold tracking-widest">
           <div>© 2026 - Simulateur d'Investissement Analyste Pro</div>
           <div className="flex gap-8">
@@ -399,19 +420,58 @@ export default function App() {
 
       {/* SYNTHETIC PDF TEMPLATE (HIDDEN) */}
       <div className="fixed left-[-9999px] top-0 pointer-events-none">
-        <div ref={reportRef} className="pdf-compat w-[210mm] p-[15mm] bg-white text-slate-900 flex flex-col gap-6 font-sans">
-          <div className="flex justify-between border-b-4 border-primary pb-6"><div><h1 className="text-4xl font-black text-slate-900 uppercase tracking-tighter">Bilan Immobilier</h1><p className="text-xl font-bold text-accent uppercase tracking-widest">{activeSim.name}</p></div><div className="text-right"><p className="text-[10px] font-black uppercase text-slate-300">Rapport émis le</p><p className="font-black text-lg">{new Date().toLocaleDateString('fr-FR')}</p></div></div>
-          <div className="grid grid-cols-4 gap-4">
+        <div ref={reportRef} style={{ width: '210mm', padding: '15mm', backgroundColor: '#ffffff', color: '#0f172a', display: 'flex', flexDirection: 'column', gap: '24px', fontFamily: 'sans-serif' }}>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '4px solid #1e293b', paddingBottom: '24px' }}>
+            <div>
+              <h1 style={{ fontSize: '36px', fontWeight: '900', textTransform: 'uppercase', color: '#0f172a', letterSpacing: '-0.05em', margin: 0 }}>Bilan Immobilier</h1>
+              <p style={{ fontSize: '20px', fontWeight: '700', color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>{activeSim.name}</p>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <p style={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', color: '#cbd5e1', margin: 0 }}>Rapport émis le</p>
+              <p style={{ fontSize: '18px', fontWeight: '900', margin: 0 }}>{new Date().toLocaleDateString('fr-FR')}</p>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
             <RepKPI label="Rendement Net" value={`${calculations.rNet.toFixed(2)}%`} />
             <RepKPI label="Cashflow Net-Net" value={formatE(calculations.cashflowNetNet)} highlight sub={`Après Impôts (TMI ${activeSim.data.tmi}%)`} />
             <RepKPI label="Mensualité" value={formatE(calculations.mCredit)} />
             <RepKPI label="Gains (20 ans)" value={formatE(calculations.beneficeAn * 20)} />
           </div>
-          <div className="grid grid-cols-2 gap-10">
-            <section className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100"><h3 className="text-xs font-black uppercase text-slate-900 border-b-2 border-accent mb-4 pb-1">Financement</h3><div className="space-y-2 text-sm"><RepRow label="Investissement Total" value={formatE(calculations.investTotal)} /><RepRow label="Apport Personnel" value={formatE(activeSim.data.apport)} /><div className="flex justify-between font-black text-lg border-t-2 pt-2 border-slate-900 mt-2"><span>CRÉDIT BANCAIRE</span><span>{formatE(calculations.loanAmount)}</span></div></div></section>
-            <section className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100"><h3 className="text-xs font-black uppercase text-slate-900 border-b-2 border-accent mb-4 pb-1">Fiscalité & Cashflow</h3><div className="space-y-2 text-sm"><RepRow label="Cashflow Brut / mois" value={formatE(calculations.beneficeAn / 12 + calculations.totalChargesAnnuelles / 12)} /><RepRow label="Impôt Estimé / mois" value={formatE(calculations.impots / 12)} /><div className="flex justify-between font-black text-lg border-t-2 pt-2 border-success mt-2 text-success"><span>NET-NET / MOIS</span><span>{formatE(calculations.cashflowNetNet)}</span></div></div></section>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
+            <section style={{ backgroundColor: '#f8fafc', padding: '24px', borderRadius: '32px', border: '1px solid #f1f5f9' }}>
+              <h3 style={{ fontSize: '12px', fontWeight: '900', textTransform: 'uppercase', color: '#0f172a', borderBottom: '2px solid #6366f1', marginBottom: '16px', paddingBottom: '4px' }}>Financement</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <RepRow label="Investissement Total" value={formatE(calculations.investTotal)} />
+                <RepRow label="Apport Personnel" value={formatE(activeSim.data.apport)} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '900', fontSize: '18px', borderTop: '2px solid #0f172a', paddingTop: '8px', marginTop: '8px' }}>
+                  <span>CRÉDIT BANCAIRE</span>
+                  <span>{formatE(calculations.loanAmount)}</span>
+                </div>
+              </div>
+            </section>
+
+            <section style={{ backgroundColor: '#f8fafc', padding: '24px', borderRadius: '32px', border: '1px solid #f1f5f9' }}>
+              <h3 style={{ fontSize: '12px', fontWeight: '900', textTransform: 'uppercase', color: '#0f172a', borderBottom: '2px solid #6366f1', marginBottom: '16px', paddingBottom: '4px' }}>Fiscalité & Cashflow</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <RepRow label="Cashflow Brut / mois" value={formatE(calculations.beneficeAn / 12 + calculations.totalChargesAnnuelles / 12)} />
+                <RepRow label="Impôt Estimé / mois" value={formatE(calculations.impots / 12)} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '900', fontSize: '18px', borderTop: '2px solid #10b981', paddingTop: '8px', marginTop: '8px', color: '#10b981' }}>
+                  <span>NET-NET / MOIS</span>
+                  <span>{formatE(calculations.cashflowNetNet)}</span>
+                </div>
+              </div>
+            </section>
           </div>
-          <div className="mt-8 p-10 bg-primary rounded-[3rem] text-white flex justify-between items-center shadow-2xl shadow-indigo-100"><div><h3 className="text-2xl font-black mb-2 uppercase tracking-tighter italic">Projet Net-Net</h3><p className="text-indigo-100 text-sm">Après fiscalité (TMI {activeSim.data.tmi}%), le projet génère <span className="font-black underline text-white">{formatE(calculations.cashflowNetNet)}</span> par mois.</p></div></div>
+
+          <div style={{ marginTop: '32px', padding: '40px', backgroundColor: '#1e293b', borderRadius: '48px', color: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h3 style={{ fontSize: '24px', fontWeight: '900', marginBottom: '8px', textTransform: 'uppercase', fontStyle: 'italic' }}>Projet Net-Net</h3>
+              <p style={{ color: '#e0e7ff', fontSize: '14px', margin: 0 }}>Après fiscalité (TMI {activeSim.data.tmi}%), le projet génère <span style={{ fontWeight: '900', textDecoration: 'underline', color: '#ffffff' }}>{formatE(calculations.cashflowNetNet)}</span> par mois.</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

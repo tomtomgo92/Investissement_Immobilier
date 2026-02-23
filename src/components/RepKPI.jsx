@@ -1,10 +1,30 @@
 import React from 'react';
 
-export default function RepKPI({ label, value, highlight }) {
+export default function RepKPI({ label, value, highlight, sub }) {
     return (
-        <div className={`p-8 bg-slate-50 rounded-[2.5rem] ${highlight ? 'border-2 border-indigo-600 ring-8 ring-indigo-50' : ''}`}>
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{label}</p>
-            <p className="text-3xl font-black text-slate-900 tracking-tighter">{value}</p>
+        <div style={{
+            backgroundColor: '#f8fafc',
+            padding: '20px',
+            borderRadius: '24px',
+            border: highlight ? '2px solid #6366f1' : '1px solid #f1f5f9',
+            display: 'flex',
+            flexDirection: 'column'
+        }}>
+            <p style={{
+                fontSize: '9px',
+                fontWeight: '900',
+                textTransform: 'uppercase',
+                color: '#94a3b8',
+                letterSpacing: '0.05em',
+                marginBottom: '4px'
+            }}>{label}</p>
+            <p style={{
+                fontSize: '20px',
+                fontWeight: '900',
+                color: highlight ? '#6366f1' : '#0f172a',
+                margin: '0'
+            }}>{value}</p>
+            {sub && <p style={{ fontSize: '9px', color: '#64748b', marginTop: '4px' }}>{sub}</p>}
         </div>
     );
 }
