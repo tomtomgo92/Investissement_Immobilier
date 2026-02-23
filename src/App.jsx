@@ -4,6 +4,7 @@ import {
   Building2, Download, Share2, Wallet, X, BarChart3, Eye, EyeOff, Info, Scale,
   Trash2, PlusCircle, PieChart, Calculator, FileText
 } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement,
   BarElement, Title, Tooltip, Legend, ArcElement,
