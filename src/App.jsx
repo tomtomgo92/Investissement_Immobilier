@@ -30,10 +30,13 @@ import Toggle from './components/Toggle';
 import DimensionToggle from './components/DimensionToggle';
 import CalculationBreakdown from './components/CalculationBreakdown';
 import PdfReport from './components/PdfReport';
+import ScenarioComparator from './components/ScenarioComparator';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend);
 
 export default function App() {
+  const [viewMode, setViewMode] = useState('dashboard');
+
   // --- State Initialization with Persistence & Share Logic ---
   const [simulations, setSimulations] = useState(() => {
     // 1. Check for shared data in URL
@@ -188,6 +191,12 @@ export default function App() {
           </button>
           <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 mx-1" />
           <button
+            onClick={() => setViewMode(viewMode === 'dashboard' ? 'comparator' : 'dashboard')}
+            className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'comparator' ? 'bg-indigo-50 border-indigo-200 text-indigo-600 dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-300' : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+          >
+            <Scale size={14} /> {viewMode === 'dashboard' ? 'Comparer' : 'Tableau de Bord'}
+          </button>
+          <button
             onClick={shareSimulation}
             className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-lg text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
           >
@@ -204,215 +213,225 @@ export default function App() {
 
       <main className="flex-1 max-w-[1400px] mx-auto w-full p-6 space-y-8 animate-in fade-in duration-700">
 
-        {/* KPI Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <HeroKPI label="Cashflow Net" value={formatE(calculations.cashflowM)} color={calculations.cashflowM >= 0 ? "emerald" : "rose"} icon={<ArrowRightLeft />} highlight sub="Projection Mensuelle" />
-          <HeroKPI label="Cashflow Net-Net" value={formatE(calculations.cashflowNetNet)} color={calculations.cashflowNetNet >= 0 ? "indigo" : "slate"} icon={<Wallet />} sub={`Pression Fiscale (TMI ${activeSim.data.tmi}%)`} />
-          <HeroKPI label="Rendement Net" value={`${calculations.rNet.toFixed(2)}%`} color="emerald" icon={<TrendingUp />} sub="Performance Annuelle" />
-          <HeroKPI label="Enrichissement" value={formatE(calculations.beneficeAn * 20 + (calculations.investTotal - activeSim.data.apport))} color="indigo" icon={<Building2 />} sub="Projection à 20 ans" />
-        </div>
+        {viewMode === 'comparator' ? (
+          <ScenarioComparator
+            simulations={simulations}
+            activeSimId={activeSimId}
+            setActiveSimId={(id) => { setActiveSimId(id); setViewMode('dashboard'); }}
+          />
+        ) : (
+          <>
+            {/* KPI Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <HeroKPI label="Cashflow Net" value={formatE(calculations.cashflowM)} color={calculations.cashflowM >= 0 ? "emerald" : "rose"} icon={<ArrowRightLeft />} highlight sub="Projection Mensuelle" />
+              <HeroKPI label="Cashflow Net-Net" value={formatE(calculations.cashflowNetNet)} color={calculations.cashflowNetNet >= 0 ? "indigo" : "slate"} icon={<Wallet />} sub={`Pression Fiscale (TMI ${activeSim.data.tmi}%)`} />
+              <HeroKPI label="Rendement Net" value={`${calculations.rNet.toFixed(2)}%`} color="emerald" icon={<TrendingUp />} sub="Performance Annuelle" />
+              <HeroKPI label="Enrichissement" value={formatE(calculations.beneficeAn * 20 + (calculations.investTotal - activeSim.data.apport))} color="indigo" icon={<Building2 />} sub="Projection à 20 ans" />
+            </div>
 
-        {/* Input Zones */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Input Zones */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-          <div className="space-y-8">
-            <DashboardSection title="Patrimoine" icon={<Home size={18} className="text-accent" />}>
-              <PremiumInput label="Prix d'achat" value={activeSim.data.prixAchat} onChange={(v) => updateData('prixAchat', v)} tooltip="Prix hors frais d'agence" />
-              <PremiumInput label="Travaux" value={activeSim.data.travaux} onChange={(v) => updateData('travaux', v)} tooltip="Rénovation et ameublement" />
-              <PremiumInput label="Frais Notaire" value={activeSim.data.fraisNotaire} onChange={(v) => updateData('fraisNotaire', v)} tooltip="Estimation automatique à 8%" />
-              <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                <span className="text-[10px] font-bold text-slate-500 uppercase">Coût Total Projet</span>
-                <span className="text-lg font-bold text-primary dark:text-white">{formatE(calculations.investTotal)}</span>
+              <div className="space-y-8">
+                <DashboardSection title="Patrimoine" icon={<Home size={18} className="text-accent" />}>
+                  <PremiumInput label="Prix d'achat" value={activeSim.data.prixAchat} onChange={(v) => updateData('prixAchat', v)} tooltip="Prix hors frais d'agence" />
+                  <PremiumInput label="Travaux" value={activeSim.data.travaux} onChange={(v) => updateData('travaux', v)} tooltip="Rénovation et ameublement" />
+                  <PremiumInput label="Frais Notaire" value={activeSim.data.fraisNotaire} onChange={(v) => updateData('fraisNotaire', v)} tooltip="Estimation automatique à 8%" />
+                  <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">Coût Total Projet</span>
+                    <span className="text-lg font-bold text-primary dark:text-white">{formatE(calculations.investTotal)}</span>
+                  </div>
+                </DashboardSection>
+
+                <DashboardSection title="Banque" icon={<Landmark size={18} className="text-amber-500" />}>
+                  <PremiumInput label="Apport Personnel" value={activeSim.data.apport} onChange={(v) => updateData('apport', v)} />
+                  <div className="grid grid-cols-2 gap-4">
+                    <PremiumInput label="Taux %" value={activeSim.data.tauxInteret} onChange={(v) => updateData('tauxInteret', v)} suffix="%" />
+                    <PremiumInput label="Durée" value={activeSim.data.dureeCredit} onChange={(v) => updateData('dureeCredit', v)} suffix="Ans" />
+                  </div>
+                  <div className="pt-4 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 mt-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Auto-Calcul</span>
+                      <Toggle active={activeSim.data.autoCredit} onToggle={() => setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, autoCredit: !s.data.autoCredit } } : s))} />
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] font-bold text-slate-400">Mensualité Estimée</p>
+                      <p className="text-lg font-bold text-primary dark:text-white">{formatE(calculations.mCredit)}</p>
+                    </div>
+                  </div>
+                </DashboardSection>
               </div>
-            </DashboardSection>
 
-            <DashboardSection title="Banque" icon={<Landmark size={18} className="text-amber-500" />}>
-              <PremiumInput label="Apport Personnel" value={activeSim.data.apport} onChange={(v) => updateData('apport', v)} />
-              <div className="grid grid-cols-2 gap-4">
-                <PremiumInput label="Taux %" value={activeSim.data.tauxInteret} onChange={(v) => updateData('tauxInteret', v)} suffix="%" />
-                <PremiumInput label="Durée" value={activeSim.data.dureeCredit} onChange={(v) => updateData('dureeCredit', v)} suffix="Ans" />
-              </div>
-              <div className="pt-4 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 mt-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-500 uppercase">Auto-Calcul</span>
-                  <Toggle active={activeSim.data.autoCredit} onToggle={() => setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, autoCredit: !s.data.autoCredit } } : s))} />
-                </div>
-                <div className="text-right">
-                  <p className="text-[10px] font-bold text-slate-400">Mensualité Estimée</p>
-                  <p className="text-lg font-bold text-primary dark:text-white">{formatE(calculations.mCredit)}</p>
-                </div>
-              </div>
-            </DashboardSection>
-          </div>
+              <div className="space-y-8">
+                <DashboardSection title="Fiscalité & Taxes" icon={<Scale size={18} className="text-rose-500" />}>
+                  <div className="flex flex-col gap-3">
+                    <div className="flex justify-between items-center px-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-tight">Tranche TMI</label>
+                      <InfoTooltip text="Votre tranche marginale d'imposition (0, 11, 30, 41, 45%)" />
+                    </div>
+                    <div className="flex bg-slate-50 dark:bg-slate-800 p-1 rounded-lg gap-1">
+                      {TMI_OPTIONS.map(t => (
+                        <button
+                          key={t}
+                          onClick={() => updateData('tmi', t)}
+                          className={`flex-1 py-2 rounded-md text-[10px] font-bold transition-all ${activeSim.data.tmi === t ? 'bg-white dark:bg-slate-700 text-primary dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                          {t}%
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <PremiumInput label="Vacance Locative" value={activeSim.data.vacanceLocative} onChange={(v) => updateData('vacanceLocative', v)} suffix="%" />
+                </DashboardSection>
 
-          <div className="space-y-8">
-            <DashboardSection title="Fiscalité & Taxes" icon={<Scale size={18} className="text-rose-500" />}>
-              <div className="flex flex-col gap-3">
-                <div className="flex justify-between items-center px-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-tight">Tranche TMI</label>
-                  <InfoTooltip text="Votre tranche marginale d'imposition (0, 11, 30, 41, 45%)" />
-                </div>
-                <div className="flex bg-slate-50 dark:bg-slate-800 p-1 rounded-lg gap-1">
-                  {TMI_OPTIONS.map(t => (
-                    <button
-                      key={t}
-                      onClick={() => updateData('tmi', t)}
-                      className={`flex-1 py-2 rounded-md text-[10px] font-bold transition-all ${activeSim.data.tmi === t ? 'bg-white dark:bg-slate-700 text-primary dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                    >
-                      {t}%
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <PremiumInput label="Vacance Locative" value={activeSim.data.vacanceLocative} onChange={(v) => updateData('vacanceLocative', v)} suffix="%" />
-            </DashboardSection>
-
-            <DashboardSection
-              title="Détail Charges (An)"
-              icon={<Receipt size={18} className="text-rose-500" />}
-              rightElement={<button onClick={addCharge} className="text-accent hover:opacity-80"><PlusCircle size={20} /></button>}
-            >
-              <div className="space-y-3 pr-2">
-                {activeSim.data.charges.map((c) => (
-                  <div key={c.id} className="group relative">
-                    <div className="flex items-center gap-3">
-                      <input
-                        value={c.name}
-                        onChange={(e) => updateCharge(c.id, 'name', e.target.value)}
-                        className="bg-transparent border-none text-[10px] font-bold text-slate-400 uppercase p-0 focus:ring-0 flex-1"
-                      />
-                      <div className="relative w-32">
-                        <input
-                          type="number"
-                          value={c.value}
-                          onChange={(e) => updateCharge(c.id, 'value', e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-white pr-8"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 leading-none">€</span>
+                <DashboardSection
+                  title="Détail Charges (An)"
+                  icon={<Receipt size={18} className="text-rose-500" />}
+                  rightElement={<button onClick={addCharge} className="text-accent hover:opacity-80"><PlusCircle size={20} /></button>}
+                >
+                  <div className="space-y-3 pr-2">
+                    {activeSim.data.charges.map((c) => (
+                      <div key={c.id} className="group relative">
+                        <div className="flex items-center gap-3">
+                          <input
+                            value={c.name}
+                            onChange={(e) => updateCharge(c.id, 'name', e.target.value)}
+                            className="bg-transparent border-none text-[10px] font-bold text-slate-400 uppercase p-0 focus:ring-0 flex-1"
+                          />
+                          <div className="relative w-32">
+                            <input
+                              type="number"
+                              value={c.value}
+                              onChange={(e) => updateCharge(c.id, 'value', e.target.value)}
+                              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-white pr-8"
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 leading-none">€</span>
+                          </div>
+                          <button onClick={() => removeCharge(c.id)} className="opacity-0 group-hover:opacity-100 text-danger hover:text-red-600 transition-opacity">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </div>
-                      <button onClick={() => removeCharge(c.id)} className="opacity-0 group-hover:opacity-100 text-danger hover:text-red-600 transition-opacity">
-                        <Trash2 size={14} />
-                      </button>
+                    ))}
+                  </div>
+                </DashboardSection>
+              </div>
+
+              <div className="space-y-8">
+                <DashboardSection
+                  title="Revenus Locatifs"
+                  icon={<Users size={18} className="text-success" />}
+                  rightElement={
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => { const c = Math.max(0, activeSim.data.nbColocs - 1); setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: s.data.loyers.slice(0, c) } } : s)); }} className="w-6 h-6 flex items-center justify-center border border-slate-200 dark:border-slate-700 rounded hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-slate-500">-</button>
+                      <button onClick={() => { const c = activeSim.data.nbColocs + 1; setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: [...s.data.loyers, 0] } } : s)); }} className="w-6 h-6 flex items-center justify-center bg-success text-white rounded hover:opacity-90 shadow-sm transition-all">+</button>
+                    </div>
+                  }
+                >
+                  <div className="space-y-4 pr-2">
+                    <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2">
+                      <span>Unité</span>
+                      <span>Loyer Mensuel</span>
+                    </div>
+                    {activeSim.data.loyers.map((l, i) => (
+                      <div key={i} className="flex items-center gap-4 group">
+                        <span className="text-xs font-bold text-slate-400 w-4">{i + 1}</span>
+                        <div className="relative flex-1">
+                          <input
+                            type="number"
+                            value={l}
+                            onChange={(e) => {
+                              const v = parseFloat(e.target.value) || 0;
+                              setSimulations(p => p.map(s => {
+                                if (s.id !== activeSimId) return s;
+                                const nl = [...s.data.loyers];
+                                nl[i] = v;
+                                return { ...s, data: { ...s.data, loyers: nl } };
+                              }));
+                            }}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm font-bold text-primary dark:text-white"
+                          />
+                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-medium">€</span>
+                        </div>
+                      </div>
+                    ))}
+
+                    <div className="mt-8 p-5 bg-slate-100 dark:bg-slate-800 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-slate-500 uppercase">Total Mensuel</span>
+                        <span className="text-xl font-bold text-primary dark:text-white">{formatE(calculations.recetteMensuelleBrute)}</span>
+                      </div>
+                      <div className="flex justify-between items-center border-t border-slate-200 dark:border-slate-700 pt-2">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Annuel (Estimé)</span>
+                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{formatE(calculations.recetteAnnuelle)} / an</span>
+                      </div>
                     </div>
                   </div>
-                ))}
+                </DashboardSection>
               </div>
-            </DashboardSection>
-          </div>
 
-          <div className="space-y-8">
-            <DashboardSection
-              title="Revenus Locatifs"
-              icon={<Users size={18} className="text-success" />}
-              rightElement={
-                <div className="flex items-center gap-2">
-                  <button onClick={() => { const c = Math.max(0, activeSim.data.nbColocs - 1); setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: s.data.loyers.slice(0, c) } } : s)); }} className="w-6 h-6 flex items-center justify-center border border-slate-200 dark:border-slate-700 rounded hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-slate-500">-</button>
-                  <button onClick={() => { const c = activeSim.data.nbColocs + 1; setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: [...s.data.loyers, 0] } } : s)); }} className="w-6 h-6 flex items-center justify-center bg-success text-white rounded hover:opacity-90 shadow-sm transition-all">+</button>
-                </div>
-              }
-            >
-              <div className="space-y-4 pr-2">
-                <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2">
-                  <span>Unité</span>
-                  <span>Loyer Mensuel</span>
-                </div>
-                {activeSim.data.loyers.map((l, i) => (
-                  <div key={i} className="flex items-center gap-4 group">
-                    <span className="text-xs font-bold text-slate-400 w-4">{i + 1}</span>
-                    <div className="relative flex-1">
-                      <input
-                        type="number"
-                        value={l}
-                        onChange={(e) => {
-                          const v = parseFloat(e.target.value) || 0;
-                          setSimulations(p => p.map(s => {
-                            if (s.id !== activeSimId) return s;
-                            const nl = [...s.data.loyers];
-                            nl[i] = v;
-                            return { ...s, data: { ...s.data, loyers: nl } };
-                          }));
-                        }}
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm font-bold text-primary dark:text-white"
-                      />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-medium">€</span>
-                    </div>
-                  </div>
-                ))}
+            </div>
 
-                <div className="mt-8 p-5 bg-slate-100 dark:bg-slate-800 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold text-slate-500 uppercase">Total Mensuel</span>
-                    <span className="text-xl font-bold text-primary dark:text-white">{formatE(calculations.recetteMensuelleBrute)}</span>
-                  </div>
-                  <div className="flex justify-between items-center border-t border-slate-200 dark:border-slate-700 pt-2">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">Annuel (Estimé)</span>
-                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{formatE(calculations.recetteAnnuelle)} / an</span>
-                  </div>
+            {/* Projection Chart */}
+            <section className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-accent mb-1 block">Analyse Patrimoniale</span>
+                  <h2 className="text-xl font-bold text-primary dark:text-white">Projection 20 ans</h2>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <DimensionToggle active={visibleDimensions.netWorth} onClick={() => toggleDimension('netWorth')} dot="bg-accent" label="Nette" />
+                  <DimensionToggle active={visibleDimensions.debt} onClick={() => toggleDimension('debt')} dot="bg-danger" label="Dette" />
+                  <DimensionToggle active={visibleDimensions.cashflow} onClick={() => toggleDimension('cashflow')} dot="bg-success" label="Cash" />
                 </div>
               </div>
-            </DashboardSection>
-          </div>
 
-        </div>
+              <div className="w-full h-[450px] relative">
+                <Line
+                  data={{
+                    labels: calculations.projectionData.map(d => `${d.year} an${d.year > 1 ? 's' : ''}`),
+                    datasets: [
+                      { label: 'Valeur Nette', data: calculations.projectionData.map(d => d.netWorth), borderColor: '#6366f1', borderWidth: 3.5, tension: 0.4, pointRadius: (ctx) => ctx.dataIndex % 4 === 0 ? 4 : 0, fill: false, hidden: !visibleDimensions.netWorth },
+                      { label: 'Dette', data: calculations.projectionData.map(d => d.remainingDebt), borderColor: '#ef4444', borderWidth: 2, borderDash: [6, 6], tension: 0, pointRadius: 0, fill: false, hidden: !visibleDimensions.debt },
+                      { label: 'Cashflow', data: calculations.projectionData.map(d => d.cumCashflow), borderColor: '#10b981', borderWidth: 2.5, tension: 0.4, pointRadius: 0, fill: false, hidden: !visibleDimensions.cashflow }
+                    ]
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { display: false },
+                      tooltip: {
+                        backgroundColor: '#1e293b',
+                        padding: 12,
+                        cornerRadius: 8,
+                        titleFont: { size: 10, weight: 'bold' },
+                        bodyFont: { size: 12 }
+                      }
+                    },
+                    scales: {
+                      y: {
+                        grid: { color: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' },
+                        ticks: { color: '#94a3b8', font: { weight: 'bold', size: 10 }, callback: (v) => `${v / 1000}k€` }
+                      },
+                      x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8', font: { weight: 'bold', size: 10 }, maxTicksLimit: 6 }
+                      }
+                    }
+                  }}
+                />
+              </div>
+            </section>
 
-        {/* Projection Chart */}
-        <section className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-accent mb-1 block">Analyse Patrimoniale</span>
-              <h2 className="text-xl font-bold text-primary dark:text-white">Projection 20 ans</h2>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <DimensionToggle active={visibleDimensions.netWorth} onClick={() => toggleDimension('netWorth')} dot="bg-accent" label="Nette" />
-              <DimensionToggle active={visibleDimensions.debt} onClick={() => toggleDimension('debt')} dot="bg-danger" label="Dette" />
-              <DimensionToggle active={visibleDimensions.cashflow} onClick={() => toggleDimension('cashflow')} dot="bg-success" label="Cash" />
-            </div>
-          </div>
-
-          <div className="w-full h-[450px] relative">
-            <Line
-              data={{
-                labels: calculations.projectionData.map(d => `${d.year} an${d.year > 1 ? 's' : ''}`),
-                datasets: [
-                  { label: 'Valeur Nette', data: calculations.projectionData.map(d => d.netWorth), borderColor: '#6366f1', borderWidth: 3.5, tension: 0.4, pointRadius: (ctx) => ctx.dataIndex % 4 === 0 ? 4 : 0, fill: false, hidden: !visibleDimensions.netWorth },
-                  { label: 'Dette', data: calculations.projectionData.map(d => d.remainingDebt), borderColor: '#ef4444', borderWidth: 2, borderDash: [6, 6], tension: 0, pointRadius: 0, fill: false, hidden: !visibleDimensions.debt },
-                  { label: 'Cashflow', data: calculations.projectionData.map(d => d.cumCashflow), borderColor: '#10b981', borderWidth: 2.5, tension: 0.4, pointRadius: 0, fill: false, hidden: !visibleDimensions.cashflow }
-                ]
-              }}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: { display: false },
-                  tooltip: {
-                    backgroundColor: '#1e293b',
-                    padding: 12,
-                    cornerRadius: 8,
-                    titleFont: { size: 10, weight: 'bold' },
-                    bodyFont: { size: 12 }
-                  }
-                },
-                scales: {
-                  y: {
-                    grid: { color: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' },
-                    ticks: { color: '#94a3b8', font: { weight: 'bold', size: 10 }, callback: (v) => `${v / 1000}k€` }
-                  },
-                  x: {
-                    grid: { display: false },
-                    ticks: { color: '#94a3b8', font: { weight: 'bold', size: 10 }, maxTicksLimit: 6 }
-                  }
-                }
-              }}
+            {/* Calculation Breakdown */}
+            <CalculationBreakdown
+              data={activeSim.data}
+              calculations={calculations}
+              formatE={formatE}
             />
-          </div>
-        </section>
-
-        {/* Calculation Breakdown */}
-        <CalculationBreakdown
-          data={activeSim.data}
-          calculations={calculations}
-          formatE={formatE}
-        />
+          </>
+        )}
 
         <footer className="pt-12 pb-16 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6 text-slate-400 text-[10px] uppercase font-bold tracking-widest">
           <div>© 2026 - Simulateur d'Investissement Analyste Pro</div>
