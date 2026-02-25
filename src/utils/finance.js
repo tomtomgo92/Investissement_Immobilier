@@ -93,12 +93,21 @@ export const calculateResults = (d) => {
   const beneficeAn = recetteAnnuelle - (creditAnnee + totalChargesAnnuelles);
   const cashflowM = beneficeAn / 12;
 
-  // --- Tax Calculation (Simplified LMNP Réel) ---
+  // --- Tax Calculation (Optimizer: Micro-BIC vs LMNP Réel) ---
   const amortissementAnnuel = ((d.prixAchat * 0.85) + d.fraisNotaire + d.travaux) / 25;
   const interetsAnnuels = loanAmount * (d.tauxInteret / 100);
 
-  const resultatFiscal = Math.max(0, recetteAnnuelle - totalChargesAnnuelles - interetsAnnuels - amortissementAnnuel);
-  const impots = resultatFiscal * ((d.tmi + 17.2) / 100); // TMI + CSG
+  // 1. LMNP Réel
+  const resultatFiscalReel = Math.max(0, recetteAnnuelle - totalChargesAnnuelles - interetsAnnuels - amortissementAnnuel);
+  const impotsReel = resultatFiscalReel * ((d.tmi + 17.2) / 100);
+
+  // 2. Micro-BIC (50% abatement)
+  const resultatFiscalMicro = Math.max(0, recetteAnnuelle * 0.5);
+  const impotsMicro = resultatFiscalMicro * ((d.tmi + 17.2) / 100);
+
+  // Optimization
+  const bestRegime = impotsReel < impotsMicro ? 'reel' : 'micro';
+  const impots = Math.min(impotsReel, impotsMicro);
   const cashflowNetNet = cashflowM - (impots / 12);
 
   const years = Array.from({ length: 21 }, (_, i) => i);
@@ -122,7 +131,7 @@ export const calculateResults = (d) => {
   return {
     investTotal, loanAmount, recetteMensuelleBrute, recetteAnnuelle, totalChargesAnnuelles,
     creditAnnee, rBrute, rNet, beneficeAn, cashflowM, mCredit, projectionData, recetteMensuelleRéelle,
-    impots, cashflowNetNet
+    impots, cashflowNetNet, bestRegime, impotsReel, impotsMicro
   };
 };
 
