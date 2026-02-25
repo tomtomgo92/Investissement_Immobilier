@@ -4,7 +4,7 @@ import { Calculator, ArrowRight, Info } from 'lucide-react';
 export default function CalculationBreakdown({ data, calculations, formatE }) {
     const {
         recetteMensuelleBrute, vacanceLocative, recetteMensuelleRéelle,
-        totalChargesAnnuelles, mCredit, tmi, impots, cashflowM, cashflowNetNet
+        totalChargesAnnuelles, mCredit, tmi, impots, cashflowNetNet
     } = { ...data, ...calculations };
 
     return (
