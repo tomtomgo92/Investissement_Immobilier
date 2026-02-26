@@ -11,7 +11,22 @@ const validateSimulation = (sim) => {
   if (typeof sim.name !== 'string') return false;
   if (!sim.data || typeof sim.data !== 'object') return false;
 
+  // --- SECURITY ENHANCEMENTS ---
+  // Apply limits BEFORE deep processing to prevent DoS
+  const MAX_NAME_LENGTH = 100;
+  const MAX_ARRAY_LENGTH = 100;
+  const MAX_VALUE = 1_000_000_000;
+  const MIN_VALUE = -1_000_000_000;
+
+  if (sim.name.length > MAX_NAME_LENGTH) return false;
+
   const d = sim.data;
+
+  // Validate array lengths before content iteration
+  if (!Array.isArray(d.loyers) || d.loyers.length > MAX_ARRAY_LENGTH) return false;
+  if (!Array.isArray(d.charges) || d.charges.length > MAX_ARRAY_LENGTH) return false;
+
+  // Validate numeric fields presence and type
   const requiredNumericFields = [
     'prixAchat',
     'travaux',
@@ -24,17 +39,22 @@ const validateSimulation = (sim) => {
     'tmi'
   ];
 
-  // Validate numeric fields
   for (const f of requiredNumericFields) {
-    if (typeof d[f] !== 'number') return false;
+    if (typeof d[f] !== 'number' || !Number.isFinite(d[f])) return false;
+    if (d[f] > MAX_VALUE || d[f] < MIN_VALUE) return false;
   }
 
-  // Validate arrays
-  if (!Array.isArray(d.loyers) || !d.loyers.every(v => typeof v === 'number')) return false;
+  // Logic specific checks
+  if (d.dureeCredit < 0) return false;
+  // nbColocs is often tied to loyers length, but let's check it reasonably
+  if (typeof d.nbColocs === 'number' && d.nbColocs > MAX_ARRAY_LENGTH) return false;
 
-  if (!Array.isArray(d.charges)) return false;
+
+  // Deep validation - now safe(r) because arrays are capped
+  if (!d.loyers.every(v => typeof v === 'number' && Number.isFinite(v) && v <= MAX_VALUE && v >= MIN_VALUE)) return false;
+
   // Charges must have a numeric value to prevent calculation errors
-  if (!d.charges.every(c => c && typeof c === 'object' && typeof c.value === 'number')) return false;
+  if (!d.charges.every(c => c && typeof c === 'object' && typeof c.value === 'number' && Number.isFinite(c.value) && c.value <= MAX_VALUE && c.value >= MIN_VALUE)) return false;
 
   return true;
 };
