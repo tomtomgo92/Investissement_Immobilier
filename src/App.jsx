@@ -166,6 +166,7 @@ export default function App() {
               </button>
             ))}
             <button
+              aria-label="Créer un nouveau projet"
               onClick={() => {
                 const n = {
                   id: uuidv4(),
@@ -184,6 +185,7 @@ export default function App() {
 
         <div className="flex items-center gap-3">
           <button
+            aria-label="Activer le mode sombre/clair"
             onClick={() => setIsDarkMode(!isDarkMode)}
             className="p-2 text-slate-400 hover:text-primary dark:hover:text-white transition-colors"
           >
@@ -287,7 +289,7 @@ export default function App() {
                 <DashboardSection
                   title="Détail Charges (An)"
                   icon={<Receipt size={18} className="text-rose-500" />}
-                  rightElement={<button onClick={addCharge} className="text-accent hover:opacity-80"><PlusCircle size={20} /></button>}
+                  rightElement={<button aria-label="Ajouter une charge" onClick={addCharge} className="text-accent hover:opacity-80"><PlusCircle size={20} /></button>}
                 >
                   <div className="space-y-3 pr-2">
                     {activeSim.data.charges.map((c) => (
@@ -307,7 +309,7 @@ export default function App() {
                             />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 leading-none">€</span>
                           </div>
-                          <button onClick={() => removeCharge(c.id)} className="opacity-0 group-hover:opacity-100 text-danger hover:text-red-600 transition-opacity">
+                          <button aria-label={`Supprimer la charge ${c.name}`} onClick={() => removeCharge(c.id)} className="opacity-0 group-hover:opacity-100 text-danger hover:text-red-600 transition-opacity">
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -323,8 +325,8 @@ export default function App() {
                   icon={<Users size={18} className="text-success" />}
                   rightElement={
                     <div className="flex items-center gap-2">
-                      <button onClick={() => { const c = Math.max(0, activeSim.data.nbColocs - 1); setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: s.data.loyers.slice(0, c) } } : s)); }} className="w-6 h-6 flex items-center justify-center border border-slate-200 dark:border-slate-700 rounded hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-slate-500">-</button>
-                      <button onClick={() => { const c = activeSim.data.nbColocs + 1; setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: [...s.data.loyers, 0] } } : s)); }} className="w-6 h-6 flex items-center justify-center bg-success text-white rounded hover:opacity-90 shadow-sm transition-all">+</button>
+                      <button aria-label="Diminuer le nombre de colocataires" onClick={() => { const c = Math.max(0, activeSim.data.nbColocs - 1); setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: s.data.loyers.slice(0, c) } } : s)); }} className="w-6 h-6 flex items-center justify-center border border-slate-200 dark:border-slate-700 rounded hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-slate-500">-</button>
+                      <button aria-label="Augmenter le nombre de colocataires" onClick={() => { const c = activeSim.data.nbColocs + 1; setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: [...s.data.loyers, 0] } } : s)); }} className="w-6 h-6 flex items-center justify-center bg-success text-white rounded hover:opacity-90 shadow-sm transition-all">+</button>
                     </div>
                   }
                 >
