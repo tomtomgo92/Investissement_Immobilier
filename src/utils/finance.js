@@ -10,9 +10,16 @@ export const INITIAL_CHARGES = [
 ];
 
 export const INITIAL_DATA = {
+  // Property & Loan
   prixAchat: 92000, travaux: 20000, fraisNotaire: 7360, apport: 15000,
   tauxInteret: 3.85, dureeCredit: 20, mensualiteCredit: 567,
-  autoCredit: true, nbColocs: 3, loyers: [493, 493, 493],
+  autoCredit: true,
+
+  // Investor Profile (Bankability)
+  revenusFoyer: 3500, chargesFoyer: 800, // Monthly net revenue & existing loans/rent
+
+  // Operations
+  nbColocs: 3, loyers: [493, 493, 493],
   charges: [...INITIAL_CHARGES],
   vacanceLocative: 5,
   tmi: 30, // Tranche Marginale d'Imposition default
@@ -57,6 +64,105 @@ export const calculateMonthlyPayment = (loanAmount, tauxInteret, dureeCredit) =>
 };
 
 /**
+ * Generates a full amortization schedule (capital/interest split per month).
+ */
+export const calculateAmortizationSchedule = (loanAmount, annualRate, durationYears, monthlyPayment) => {
+  const schedule = [];
+  let remainingCapital = loanAmount;
+  const monthlyRate = annualRate / 100 / 12;
+  const totalMonths = durationYears * 12;
+
+  // If monthlyPayment is provided (fixed), use it. Otherwise calculate.
+  const payment = monthlyPayment || calculateMonthlyPayment(loanAmount, annualRate, durationYears);
+
+  for (let m = 1; m <= totalMonths; m++) {
+    const interest = remainingCapital * monthlyRate;
+    const capital = payment - interest;
+    remainingCapital -= capital;
+    if (remainingCapital < 0) remainingCapital = 0;
+
+    schedule.push({
+      month: m,
+      year: Math.ceil(m / 12),
+      payment,
+      interest,
+      capital,
+      remainingCapital
+    });
+
+    if (remainingCapital <= 0) break;
+  }
+  return schedule;
+};
+
+/**
+ * Aggregates amortization schedule by year.
+ */
+export const aggregateScheduleByYear = (schedule) => {
+  const years = {};
+  schedule.forEach(row => {
+    if (!years[row.year]) years[row.year] = { interest: 0, capital: 0, remainingCapital: 0 };
+    years[row.year].interest += row.interest;
+    years[row.year].capital += row.capital;
+    years[row.year].remainingCapital = row.remainingCapital; // Last month's value
+  });
+  return years; // Object with year keys
+};
+
+
+/**
+ * Calculates Bankability / Debt Ratio.
+ */
+export const calculateBankability = (revenusFoyer, chargesFoyer, loyerPondere, mensualiteCredit) => {
+  // HCSF Calculation typically uses 70% of rental income
+  const totalRevenus = revenusFoyer + (loyerPondere * 0.7);
+  const totalCharges = chargesFoyer + mensualiteCredit;
+
+  const tauxEndettement = totalRevenus > 0 ? (totalCharges / totalRevenus) * 100 : 0;
+  const resteAVivre = totalRevenus - totalCharges;
+
+  // Simple heuristic for status
+  let status = 'green';
+  if (tauxEndettement > 35) status = 'red';
+  else if (tauxEndettement > 33) status = 'orange';
+
+  return { tauxEndettement, resteAVivre, status };
+};
+
+
+/**
+ * Generates Stress Test Scenarios based on base data.
+ */
+export const generateStressScenarios = (baseData) => {
+  // Scenario 1: High Vacancy (2 months ~ 16.6%)
+  const dataVacancy = { ...baseData, vacanceLocative: 16.6, name: 'Vacance Élevée' };
+
+  // Scenario 2: Rent Decrease (-15%)
+  const lowerRentFactor = 0.85;
+  const dataRentDrop = {
+    ...baseData,
+    loyers: baseData.loyers.map(l => l * lowerRentFactor),
+    name: 'Baisse Loyers'
+  };
+
+  // Scenario 3: Charges Increase (+25%)
+  const higherChargesFactor = 1.25;
+  const dataChargesUp = {
+    ...baseData,
+    charges: baseData.charges.map(c => ({ ...c, value: c.value * higherChargesFactor })),
+    name: 'Hausse Charges'
+  };
+
+  return {
+    nominal: { ...baseData, name: 'Nominal' },
+    vacancy: dataVacancy,
+    rentDrop: dataRentDrop,
+    chargesUp: dataChargesUp
+  };
+};
+
+
+/**
  * Calculates the gross and net rental yields.
  */
 export function calculateRentalYields({ investTotal, monthlyGrossRent, annualRealRent, annualCharges }) {
@@ -72,17 +178,25 @@ export const calculateResults = (d) => {
   const investTotal = calculateInvestmentTotal(d.prixAchat, d.travaux, d.fraisNotaire);
   const loanAmount = calculateLoanAmount(investTotal, d.apport);
 
+  // Credit Calculation
   let mCredit = d.mensualiteCredit;
   if (d.autoCredit) {
     mCredit = calculateMonthlyPayment(loanAmount, d.tauxInteret, d.dureeCredit);
   }
 
+  // Generate Amortization Schedule (Yearly Aggregates)
+  const schedule = calculateAmortizationSchedule(loanAmount, d.tauxInteret, d.dureeCredit, mCredit);
+  const yearlySchedule = aggregateScheduleByYear(schedule);
+
+
+  // Operational Flows
   const recetteMensuelleBrute = d.loyers.reduce((acc, curr) => acc + curr, 0);
   const recetteMensuelleRéelle = recetteMensuelleBrute * (1 - (d.vacanceLocative / 100));
   const recetteAnnuelle = recetteMensuelleRéelle * 12;
   const totalChargesAnnuelles = d.charges.reduce((acc, c) => acc + c.value, 0);
   const creditAnnee = mCredit * 12;
 
+  // Yields
   const { rBrute, rNet } = calculateRentalYields({
     investTotal,
     monthlyGrossRent: recetteMensuelleBrute,
@@ -93,45 +207,79 @@ export const calculateResults = (d) => {
   const beneficeAn = recetteAnnuelle - (creditAnnee + totalChargesAnnuelles);
   const cashflowM = beneficeAn / 12;
 
-  // --- Tax Calculation (Optimizer: Micro-BIC vs LMNP Réel) ---
-  const amortissementAnnuel = ((d.prixAchat * 0.85) + d.fraisNotaire + d.travaux) / 25;
-  const interetsAnnuels = loanAmount * (d.tauxInteret / 100);
+  // --- Dynamic Tax Projection (Year by Year) ---
+  const amortissementImmobilier = (d.prixAchat * 0.85 + d.fraisNotaire) / 30; // 30 years approx
+  const amortissementMobilier = (d.travaux) / 10; // 10 years for furniture/works approx
 
-  // 1. LMNP Réel
-  const resultatFiscalReel = Math.max(0, recetteAnnuelle - totalChargesAnnuelles - interetsAnnuels - amortissementAnnuel);
-  const impotsReel = resultatFiscalReel * ((d.tmi + 17.2) / 100);
+  const projectionData = [];
+  const years = 20;
 
-  // 2. Micro-BIC (50% abatement)
-  const resultatFiscalMicro = Math.max(0, recetteAnnuelle * 0.5);
-  const impotsMicro = resultatFiscalMicro * ((d.tmi + 17.2) / 100);
+  for (let year = 1; year <= years; year++) {
+    // 1. Interest for this year (from schedule or 0 if loan over)
+    const interests = yearlySchedule[year] ? yearlySchedule[year].interest : 0;
+    const remainingDebt = yearlySchedule[year] ? yearlySchedule[year].remainingCapital : 0;
 
-  // Optimization
-  const bestRegime = impotsReel < impotsMicro ? 'reel' : 'micro';
-  const impots = Math.min(impotsReel, impotsMicro);
-  const cashflowNetNet = cashflowM - (impots / 12);
+    // 2. LMNP Réel Calculation
+    // Resultat = Recettes - Charges - Intérêts - Amortissements
+    // Amortissement stops after its duration
+    let amortTotal = 0;
+    if (year <= 30) amortTotal += amortissementImmobilier;
+    if (year <= 10) amortTotal += amortissementMobilier;
 
-  const years = Array.from({ length: 21 }, (_, i) => i);
-  const rMensuel = (d.tauxInteret || 0) / 100 / 12;
-  const nMensuel = d.dureeCredit * 12;
+    const resultatFiscalReel = Math.max(0, recetteAnnuelle - totalChargesAnnuelles - interests - amortTotal);
+    const impotsReel = resultatFiscalReel * ((d.tmi + 17.2) / 100);
 
-  const projectionData = years.map(year => {
-    const months = year * 12;
-    let remainingDebt = loanAmount;
-    if (rMensuel > 0 && months > 0) {
-      remainingDebt = loanAmount * (Math.pow(1 + rMensuel, nMensuel) - Math.pow(1 + rMensuel, months)) / (Math.pow(1 + rMensuel, nMensuel) - 1);
-    } else if (months > 0) {
-      remainingDebt = Math.max(0, loanAmount - (mCredit * months));
-    }
-    if (year > d.dureeCredit) remainingDebt = 0;
-    const cumCashflow = beneficeAn * year;
-    const netWorth = (d.prixAchat + d.travaux) - remainingDebt + cumCashflow;
-    return { year, remainingDebt, cumCashflow, netWorth, cumCharges: totalChargesAnnuelles * year };
-  });
+    // 3. Micro-BIC (50% abatement)
+    const resultatFiscalMicro = Math.max(0, recetteAnnuelle * 0.5);
+    const impotsMicro = resultatFiscalMicro * ((d.tmi + 17.2) / 100);
+
+    const impots = Math.min(impotsReel, impotsMicro);
+    const bestRegime = impotsReel < impotsMicro ? 'reel' : 'micro';
+
+    // Cashflow Net Net for this specific year
+    const cfNetNetYear = beneficeAn - impots;
+
+    // Net Worth (Asset Value - Debt + Cash Accumulation)
+    // Simple appreciation model: 1% / year
+    const assetValue = (d.prixAchat + d.travaux) * Math.pow(1.01, year);
+    const cumCashflow = beneficeAn * year; // Simplified cumulative without tax reinvestment for now
+    const netWorth = assetValue - remainingDebt + cumCashflow;
+
+    projectionData.push({
+      year,
+      remainingDebt,
+      interests,
+      amortTotal,
+      impots,
+      bestRegime,
+      cfNetNetYear,
+      netWorth,
+      cumCashflow
+    });
+  }
+
+  // Averages for KPI display (Year 1)
+  const firstYear = projectionData[0] || {};
+  const impotsFirstYear = firstYear.impots || 0;
+  const cashflowNetNet = cashflowM - (impotsFirstYear / 12);
+  const bestRegime = firstYear.bestRegime || 'micro';
+  const impotsReel = firstYear.impotsReel || 0; // Note: not stored in array above, simplified
+  const impotsMicro = firstYear.impotsMicro || 0;
+
+  // Bankability Check
+  const bankability = calculateBankability(d.revenusFoyer, d.chargesFoyer, recetteMensuelleRéelle, mCredit);
 
   return {
     investTotal, loanAmount, recetteMensuelleBrute, recetteAnnuelle, totalChargesAnnuelles,
-    creditAnnee, rBrute, rNet, beneficeAn, cashflowM, mCredit, projectionData, recetteMensuelleRéelle,
-    impots, cashflowNetNet, bestRegime, impotsReel, impotsMicro
+    creditAnnee, rBrute, rNet, beneficeAn, cashflowM, mCredit,
+    recetteMensuelleRéelle,
+    // New specific outputs
+    projectionData,
+    cashflowNetNet,
+    bankability,
+    // Preserving old structure for compatibility where needed, but favoring projectionData
+    bestRegime,
+    impots: impotsFirstYear,
   };
 };
 
