@@ -31,6 +31,9 @@ import DimensionToggle from './components/DimensionToggle';
 import CalculationBreakdown from './components/CalculationBreakdown';
 import PdfReport from './components/PdfReport';
 import ScenarioComparator from './components/ScenarioComparator';
+import BankabilityIndicator from './components/BankabilityIndicator';
+import AmortizationChart from './components/AmortizationChart';
+import StressTestModule from './components/StressTestModule';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend);
 
@@ -260,6 +263,17 @@ export default function App() {
                     </div>
                   </div>
                 </DashboardSection>
+
+                {/* Bankability Section */}
+                <DashboardSection title="Profil Investisseur" icon={<Users size={18} className="text-indigo-500" />}>
+                  <div className="grid grid-cols-2 gap-4">
+                     <PremiumInput label="Revenus Foyer" value={activeSim.data.revenusFoyer} onChange={(v) => updateData('revenusFoyer', v)} tooltip="Revenus nets mensuels avant impôt" />
+                     <PremiumInput label="Charges Actuelles" value={activeSim.data.chargesFoyer} onChange={(v) => updateData('chargesFoyer', v)} tooltip="Crédits en cours + Loyer RP" />
+                  </div>
+                  <div className="pt-4 mt-2 border-t border-slate-100 dark:border-slate-800">
+                    <BankabilityIndicator bankability={calculations.bankability} />
+                  </div>
+                </DashboardSection>
               </div>
 
               <div className="space-y-8">
@@ -372,62 +386,78 @@ export default function App() {
 
             </div>
 
-            {/* Projection Chart */}
-            <section className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-accent mb-1 block">Analyse Patrimoniale</span>
-                  <h2 className="text-xl font-bold text-primary dark:text-white">Projection 20 ans</h2>
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <DimensionToggle active={visibleDimensions.netWorth} onClick={() => toggleDimension('netWorth')} dot="bg-accent" label="Nette" />
-                  <DimensionToggle active={visibleDimensions.debt} onClick={() => toggleDimension('debt')} dot="bg-danger" label="Dette" />
-                  <DimensionToggle active={visibleDimensions.cashflow} onClick={() => toggleDimension('cashflow')} dot="bg-success" label="Cash" />
-                </div>
-              </div>
+            {/* Projection Chart & Amortization Grid */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <section className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-4">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-accent mb-1 block">Analyse Patrimoniale</span>
+                      <h2 className="text-xl font-bold text-primary dark:text-white">Trajectoire 20 ans</h2>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <DimensionToggle active={visibleDimensions.netWorth} onClick={() => toggleDimension('netWorth')} dot="bg-accent" label="Nette" />
+                      <DimensionToggle active={visibleDimensions.debt} onClick={() => toggleDimension('debt')} dot="bg-danger" label="Dette" />
+                      <DimensionToggle active={visibleDimensions.cashflow} onClick={() => toggleDimension('cashflow')} dot="bg-success" label="Cash" />
+                    </div>
+                  </div>
 
-              <div className="w-full h-[450px] relative">
-                <Line
-                  data={{
-                    labels: calculations.projectionData.map(d => `${d.year} an${d.year > 1 ? 's' : ''}`),
-                    datasets: [
-                      { label: 'Valeur Nette', data: calculations.projectionData.map(d => d.netWorth), borderColor: '#6366f1', borderWidth: 3.5, tension: 0.4, pointRadius: (ctx) => ctx.dataIndex % 4 === 0 ? 4 : 0, fill: false, hidden: !visibleDimensions.netWorth },
-                      { label: 'Dette', data: calculations.projectionData.map(d => d.remainingDebt), borderColor: '#ef4444', borderWidth: 2, borderDash: [6, 6], tension: 0, pointRadius: 0, fill: false, hidden: !visibleDimensions.debt },
-                      { label: 'Cashflow', data: calculations.projectionData.map(d => d.cumCashflow), borderColor: '#10b981', borderWidth: 2.5, tension: 0.4, pointRadius: 0, fill: false, hidden: !visibleDimensions.cashflow }
-                    ]
-                  }}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                      legend: { display: false },
-                      tooltip: {
-                        backgroundColor: '#1e293b',
-                        padding: 12,
-                        cornerRadius: 8,
-                        titleFont: { size: 10, weight: 'bold' },
-                        bodyFont: { size: 12 }
-                      }
-                    },
-                    scales: {
-                      y: {
-                        grid: { color: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' },
-                        ticks: { color: '#94a3b8', font: { weight: 'bold', size: 10 }, callback: (v) => `${v / 1000}k€` }
-                      },
-                      x: {
-                        grid: { display: false },
-                        ticks: { color: '#94a3b8', font: { weight: 'bold', size: 10 }, maxTicksLimit: 6 }
-                      }
-                    }
-                  }}
-                />
-              </div>
-            </section>
+                  <div className="w-full h-[300px] relative">
+                    <Line
+                      data={{
+                        labels: calculations.projectionData.map(d => `${d.year} an${d.year > 1 ? 's' : ''}`),
+                        datasets: [
+                          { label: 'Valeur Nette', data: calculations.projectionData.map(d => d.netWorth), borderColor: '#6366f1', borderWidth: 3.5, tension: 0.4, pointRadius: (ctx) => ctx.dataIndex % 4 === 0 ? 4 : 0, fill: false, hidden: !visibleDimensions.netWorth },
+                          { label: 'Dette', data: calculations.projectionData.map(d => d.remainingDebt), borderColor: '#ef4444', borderWidth: 2, borderDash: [6, 6], tension: 0, pointRadius: 0, fill: false, hidden: !visibleDimensions.debt },
+                          { label: 'Cashflow', data: calculations.projectionData.map(d => d.cumCashflow), borderColor: '#10b981', borderWidth: 2.5, tension: 0.4, pointRadius: 0, fill: false, hidden: !visibleDimensions.cashflow }
+                        ]
+                      }}
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          legend: { display: false },
+                          tooltip: {
+                            backgroundColor: '#1e293b',
+                            padding: 12,
+                            cornerRadius: 8,
+                            titleFont: { size: 10, weight: 'bold' },
+                            bodyFont: { size: 12 }
+                          }
+                        },
+                        scales: {
+                          y: {
+                            grid: { color: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' },
+                            ticks: { color: '#94a3b8', font: { weight: 'bold', size: 10 }, callback: (v) => `${v / 1000}k€` }
+                          },
+                          x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8', font: { weight: 'bold', size: 10 }, maxTicksLimit: 6 }
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                </section>
+
+                <section className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+                    <div className="mb-4">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-amber-500 mb-1 block">Structure Fiscale</span>
+                        <h2 className="text-xl font-bold text-primary dark:text-white">Amortissement & Impôts</h2>
+                    </div>
+                    <AmortizationChart data={calculations.projectionData} isDarkMode={isDarkMode} />
+                </section>
+            </div>
 
             {/* Calculation Breakdown */}
             <CalculationBreakdown
               data={activeSim.data}
               calculations={calculations}
+              formatE={formatE}
+            />
+
+            {/* Stress Test Module */}
+            <StressTestModule
+              data={activeSim.data}
               formatE={formatE}
             />
           </>
