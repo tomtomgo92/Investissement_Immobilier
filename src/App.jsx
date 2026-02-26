@@ -10,8 +10,6 @@ import {
   BarElement, Title, Tooltip, Legend, ArcElement,
 } from 'chart.js';
 import { Line, Doughnut } from 'react-chartjs-2';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 // Utilities
 import {
@@ -101,6 +99,9 @@ export default function App() {
     if (isGenerating && reportRef.current) {
       const generatePdf = async () => {
         try {
+          const { default: html2canvas } = await import('html2canvas');
+          const { default: jsPDF } = await import('jspdf');
+
           const canvas = await html2canvas(reportRef.current, {
             scale: 2,
             useCORS: true,
