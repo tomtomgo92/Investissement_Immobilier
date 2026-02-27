@@ -253,6 +253,8 @@ export const calculateResults = (d) => {
       impots,
       bestRegime,
       cfNetNetYear,
+      impotsReel,
+      impotsMicro,
       netWorth,
       cumCashflow
     });
@@ -263,7 +265,7 @@ export const calculateResults = (d) => {
   const impotsFirstYear = firstYear.impots || 0;
   const cashflowNetNet = cashflowM - (impotsFirstYear / 12);
   const bestRegime = firstYear.bestRegime || 'micro';
-  const impotsReel = firstYear.impotsReel || 0; // Note: not stored in array above, simplified
+  const impotsReel = firstYear.impotsReel || 0;
   const impotsMicro = firstYear.impotsMicro || 0;
 
   // Bankability Check
@@ -280,6 +282,8 @@ export const calculateResults = (d) => {
     // Preserving old structure for compatibility where needed, but favoring projectionData
     bestRegime,
     impots: impotsFirstYear,
+    impotsReel,
+    impotsMicro,
   };
 };
 

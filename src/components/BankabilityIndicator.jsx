@@ -14,15 +14,6 @@ export default function BankabilityIndicator({ bankability }) {
     }
   };
 
-  const getStatusIcon = () => {
-    switch (status) {
-      case 'green': return <CheckCircle size={18} />;
-      case 'orange': return <AlertTriangle size={18} />;
-      case 'red': return <AlertTriangle size={18} />;
-      default: return null;
-    }
-  };
-
   const getStatusText = () => {
     switch (status) {
       case 'green': return 'Dossier Solide';
