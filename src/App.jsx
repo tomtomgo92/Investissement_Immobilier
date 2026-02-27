@@ -154,6 +154,7 @@ export default function App() {
             </div>
             <input
               value={activeSim.name}
+              aria-label="Nom du projet de simulation"
               onChange={(e) => setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, name: e.target.value } : s))}
               className="text-lg font-bold text-primary dark:text-white bg-transparent border-none focus:ring-0 p-0 w-48 sm:w-64"
             />
@@ -258,7 +259,7 @@ export default function App() {
                   <div className="pt-4 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 mt-2">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-slate-500 uppercase">Auto-Calcul</span>
-                      <Toggle active={activeSim.data.autoCredit} onToggle={() => setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, autoCredit: !s.data.autoCredit } } : s))} />
+                      <Toggle active={activeSim.data.autoCredit} ariaLabel="Auto-calcul de la mensualité de crédit" onToggle={() => setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, autoCredit: !s.data.autoCredit } } : s))} />
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] font-bold text-slate-400">Mensualité Estimée</p>
@@ -312,6 +313,7 @@ export default function App() {
                         <div className="flex items-center gap-3">
                           <input
                             value={c.name}
+                            aria-label={`Nom de la charge ${c.name}`}
                             onChange={(e) => updateCharge(c.id, 'name', e.target.value)}
                             className="bg-transparent border-none text-[10px] font-bold text-slate-400 uppercase p-0 focus:ring-0 flex-1"
                           />
@@ -319,6 +321,7 @@ export default function App() {
                             <input
                               type="number"
                               value={c.value}
+                              aria-label={`Valeur de la charge ${c.name}`}
                               onChange={(e) => updateCharge(c.id, 'value', e.target.value)}
                               className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-white pr-8"
                             />
@@ -357,6 +360,7 @@ export default function App() {
                           <input
                             type="number"
                             value={l}
+                            aria-label={`Loyer de l'unité ${i + 1}`}
                             onChange={(e) => {
                               const v = parseFloat(e.target.value) || 0;
                               setSimulations(p => p.map(s => {
