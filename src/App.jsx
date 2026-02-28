@@ -34,7 +34,6 @@ import BankabilityIndicator from './components/BankabilityIndicator';
 import AmortizationChart from './components/AmortizationChart';
 import StressTestModule from './components/StressTestModule';
 import ReverseCalculator from './components/ReverseCalculator';
-import Footer from './components/Footer';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend);
 
@@ -321,8 +320,8 @@ export default function App() {
                 {/* Bankability Section */}
                 <DashboardSection title="Profil Investisseur" icon={<Users size={18} className="text-indigo-500" />}>
                   <div className="grid grid-cols-2 gap-4">
-                    <PremiumInput label="Revenus Foyer" value={activeSim.data.revenusFoyer} onChange={(v) => updateData('revenusFoyer', v)} tooltip="Revenus nets mensuels avant impôt" />
-                    <PremiumInput label="Charges Actuelles" value={activeSim.data.chargesFoyer} onChange={(v) => updateData('chargesFoyer', v)} tooltip="Crédits en cours + Loyer RP" />
+                     <PremiumInput label="Revenus Foyer" value={activeSim.data.revenusFoyer} onChange={(v) => updateData('revenusFoyer', v)} tooltip="Revenus nets mensuels avant impôt" />
+                     <PremiumInput label="Charges Actuelles" value={activeSim.data.chargesFoyer} onChange={(v) => updateData('chargesFoyer', v)} tooltip="Crédits en cours + Loyer RP" />
                   </div>
                   <div className="pt-4 mt-2 border-t border-slate-100 dark:border-slate-800">
                     <BankabilityIndicator bankability={calculations.bankability} />
@@ -452,34 +451,34 @@ export default function App() {
 
             {/* Projection Chart & Amortization Grid */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              <section className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-4">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-accent mb-1 block">Analyse Patrimoniale</span>
-                    <h2 className="text-xl font-bold text-primary dark:text-white">Trajectoire 20 ans</h2>
+                <section className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-4">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-accent mb-1 block">Analyse Patrimoniale</span>
+                      <h2 className="text-xl font-bold text-primary dark:text-white">Trajectoire 20 ans</h2>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <DimensionToggle active={visibleDimensions.netWorth} onClick={() => toggleDimension('netWorth')} dot="bg-accent" label="Nette" />
+                      <DimensionToggle active={visibleDimensions.debt} onClick={() => toggleDimension('debt')} dot="bg-danger" label="Dette" />
+                      <DimensionToggle active={visibleDimensions.cashflow} onClick={() => toggleDimension('cashflow')} dot="bg-success" label="Cash" />
+                    </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <DimensionToggle active={visibleDimensions.netWorth} onClick={() => toggleDimension('netWorth')} dot="bg-accent" label="Nette" />
-                    <DimensionToggle active={visibleDimensions.debt} onClick={() => toggleDimension('debt')} dot="bg-danger" label="Dette" />
-                    <DimensionToggle active={visibleDimensions.cashflow} onClick={() => toggleDimension('cashflow')} dot="bg-success" label="Cash" />
+
+                  <div className="w-full h-[300px] relative">
+                    <Line
+                      data={lineChartData}
+                      options={lineChartOptions}
+                    />
                   </div>
-                </div>
+                </section>
 
-                <div className="w-full h-[300px] relative">
-                  <Line
-                    data={lineChartData}
-                    options={lineChartOptions}
-                  />
-                </div>
-              </section>
-
-              <section className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
-                <div className="mb-4">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-amber-500 mb-1 block">Structure Fiscale</span>
-                  <h2 className="text-xl font-bold text-primary dark:text-white">Amortissement & Impôts</h2>
-                </div>
-                <AmortizationChart data={calculations.projectionData} isDarkMode={isDarkMode} />
-              </section>
+                <section className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+                    <div className="mb-4">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-amber-500 mb-1 block">Structure Fiscale</span>
+                        <h2 className="text-xl font-bold text-primary dark:text-white">Amortissement & Impôts</h2>
+                    </div>
+                    <AmortizationChart data={calculations.projectionData} isDarkMode={isDarkMode} />
+                </section>
             </div>
 
             {/* Calculation Breakdown */}
@@ -494,10 +493,10 @@ export default function App() {
               data={activeSim.data}
               onApplyMaxPrice={(price) => updateData('prixAchat', price)}
               onApplyMinRent={(rent) => {
-                setSimulations(p => p.map(s => {
-                  if (s.id !== activeSimId) return s;
-                  return { ...s, data: { ...s.data, loyers: s.data.loyers.map(() => rent) } };
-                }));
+                 setSimulations(p => p.map(s => {
+                    if (s.id !== activeSimId) return s;
+                    return { ...s, data: { ...s.data, loyers: s.data.loyers.map(() => rent) } };
+                 }));
               }}
             />
 
@@ -509,9 +508,14 @@ export default function App() {
           </>
         )}
 
+        <footer className="pt-12 pb-16 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6 text-slate-400 text-[10px] uppercase font-bold tracking-widest">
+          <div>© 2026 - Simulateur d'Investissement Analyste Pro</div>
+          <div className="flex gap-8">
+            <span className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-success" /> Système Connecté</span>
+            <span className="text-slate-300 dark:text-slate-600">v1.2.0 - Optimisé par Stitch</span>
+          </div>
+        </footer>
       </main>
-
-      <Footer />
 
       {/* SYNTHETIC PDF TEMPLATE (LAZY LOADED) */}
       {isGenerating && (
