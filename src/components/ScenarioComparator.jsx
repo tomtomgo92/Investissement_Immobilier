@@ -50,6 +50,7 @@ export default function ScenarioComparator({ simulations, activeSimId, setActive
                     {activeSimId !== sim.id && (
                       <button
                         onClick={() => setActiveSimId(sim.id)}
+                        aria-label={`Voir les détails pour le scénario ${sim.name}`}
                         className="text-[9px] text-accent hover:underline text-left"
                       >
                         Voir détails &rarr;
