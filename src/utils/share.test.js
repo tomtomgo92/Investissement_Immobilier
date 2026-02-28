@@ -33,6 +33,14 @@ describe('share utils', () => {
     assert.strictEqual(decoded, null);
   });
 
+  it('should properly encode and decode names with special characters and emojis', () => {
+    const dataWithSpecialChars = JSON.parse(JSON.stringify(validData));
+    dataWithSpecialChars.name = 'Investissement à Lyon 💸';
+    const encoded = encodeShareCode(dataWithSpecialChars);
+    const decoded = decodeShareCode(encoded);
+    assert.deepStrictEqual(decoded, dataWithSpecialChars);
+  });
+
   it('should reject incomplete data (security fix)', () => {
     const malicious = { evil: 'data' };
     const encoded = encodeShareCode(malicious);
