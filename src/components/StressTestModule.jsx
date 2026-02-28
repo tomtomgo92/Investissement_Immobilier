@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import { generateStressScenarios, calculateResults } from '../utils/finance';
-import { formatE } from '../utils/formatters';
 import { ShieldAlert, AlertTriangle, TrendingDown, TrendingUp } from 'lucide-react';
 
 export default function StressTestModule({ data, formatE }) {
