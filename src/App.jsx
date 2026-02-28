@@ -14,8 +14,9 @@ import { Line, Doughnut } from 'react-chartjs-2';
 // Utilities
 import {
   INITIAL_DATA, INITIAL_CHARGES, TMI_OPTIONS,
-  calculateResults, updateSimulationData
+  calculateResults, updateSimulationData, autoEstimateCharges
 } from './utils/finance';
+import { Wand2 } from 'lucide-react';
 import { encodeShareCode, decodeShareCode } from './utils/share';
 import { formatE } from './utils/formatters';
 
@@ -32,6 +33,7 @@ import ScenarioComparator from './components/ScenarioComparator';
 import BankabilityIndicator from './components/BankabilityIndicator';
 import AmortizationChart from './components/AmortizationChart';
 import StressTestModule from './components/StressTestModule';
+import ReverseCalculator from './components/ReverseCalculator';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend);
 
@@ -97,6 +99,12 @@ export default function App() {
   const addCharge = () => setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, charges: [...s.data.charges, { id: uuidv4(), name: 'Nouvelle Charge', value: 0 }] } } : s));
 
   const removeCharge = (id) => setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, charges: s.data.charges.filter(c => c.id !== id) } } : s));
+
+  const applyAutoEstimateCharges = () => {
+    const loyerMensuelTotal = activeSim.data.loyers.reduce((acc, val) => acc + val, 0);
+    const estimatedCharges = autoEstimateCharges(activeSim.data.prixAchat, loyerMensuelTotal);
+    setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, charges: estimatedCharges } } : s));
+  };
 
   useEffect(() => {
     if (isGenerating && reportRef.current) {
@@ -304,7 +312,14 @@ export default function App() {
                 <DashboardSection
                   title="Détail Charges (An)"
                   icon={<Receipt size={18} className="text-rose-500" />}
-                  rightElement={<button aria-label="Ajouter une charge" onClick={addCharge} className="text-accent hover:opacity-80"><PlusCircle size={20} /></button>}
+                  rightElement={
+                    <div className="flex items-center gap-2">
+                      <button aria-label="Auto-estimer les charges" onClick={applyAutoEstimateCharges} className="text-[10px] font-bold uppercase tracking-widest text-indigo-500 hover:text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1 rounded-md transition-colors flex items-center gap-1">
+                        <Wand2 size={12} /> Auto
+                      </button>
+                      <button aria-label="Ajouter une charge" onClick={addCharge} className="text-accent hover:opacity-80"><PlusCircle size={20} /></button>
+                    </div>
+                  }
                 >
                   <div className="space-y-3 pr-2">
                     {activeSim.data.charges.map((c) => (
@@ -456,6 +471,18 @@ export default function App() {
               data={activeSim.data}
               calculations={calculations}
               formatE={formatE}
+            />
+
+            {/* Reverse Calculator (Objectif & Négociation) */}
+            <ReverseCalculator
+              data={activeSim.data}
+              onApplyMaxPrice={(price) => updateData('prixAchat', price)}
+              onApplyMinRent={(rent) => {
+                 setSimulations(p => p.map(s => {
+                    if (s.id !== activeSimId) return s;
+                    return { ...s, data: { ...s.data, loyers: s.data.loyers.map(() => rent) } };
+                 }));
+              }}
             />
 
             {/* Stress Test Module */}
