@@ -66,18 +66,19 @@ export default function StressTestModule({ data, formatE }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Nominal (Reference) */}
         {renderScenarioCard('nominal', <TrendingUp size={16} />, 'text-indigo-500 bg-indigo-500', 'border-indigo-200 dark:border-indigo-900 ring-1 ring-indigo-500/20')}
 
         {/* Scenarios */}
-        {renderScenarioCard('vacancy', <AlertTriangle size={16} />, 'text-amber-500 bg-amber-500', 'border-slate-200 dark:border-slate-700')}
-        {renderScenarioCard('rentDrop', <TrendingDown size={16} />, 'text-rose-500 bg-rose-500', 'border-slate-200 dark:border-slate-700')}
-        {renderScenarioCard('chargesUp', <TrendingDown size={16} />, 'text-rose-500 bg-rose-500', 'border-slate-200 dark:border-slate-700')}
+        {renderScenarioCard('prudent', <AlertTriangle size={16} />, 'text-amber-500 bg-amber-500', 'border-slate-200 dark:border-slate-700')}
+        {renderScenarioCard('pessimiste', <TrendingDown size={16} />, 'text-rose-500 bg-rose-500', 'border-slate-200 dark:border-slate-700')}
       </div>
 
       <div className="text-[10px] text-slate-400 italic text-center">
-        * Hypothèses : Vacance = 16.6% (2 mois), Loyers -15%, Charges +25%.
+        * Hypothèses :
+        Prudent (Vacance 8.33%, Charges +20%),
+        Pessimiste (Taux +2%, Taxe foncière x1.5, Travaux x2).
       </div>
     </div>
   );

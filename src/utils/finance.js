@@ -134,33 +134,50 @@ export const calculateBankability = (revenusFoyer, chargesFoyer, loyerPondere, m
  * Generates Stress Test Scenarios based on base data.
  */
 export const generateStressScenarios = (baseData) => {
-  // Scenario 1: High Vacancy (2 months ~ 16.6%)
-  const dataVacancy = { ...baseData, vacanceLocative: 16.6, name: 'Vacance Élevée' };
-
-  // Scenario 2: Rent Decrease (-15%)
-  const lowerRentFactor = 0.85;
-  const dataRentDrop = {
+  // Scenario Prudent: 1 mois de vacance (8.33%) et charges augmentées de 20%
+  const higherChargesFactorPrudent = 1.2;
+  const dataPrudent = {
     ...baseData,
-    loyers: baseData.loyers.map(l => l * lowerRentFactor),
-    name: 'Baisse Loyers'
+    vacanceLocative: 8.33,
+    charges: baseData.charges.map(c => ({ ...c, value: c.value * higherChargesFactorPrudent })),
+    name: 'Prudent'
   };
 
-  // Scenario 3: Charges Increase (+25%)
-  const higherChargesFactor = 1.25;
-  const dataChargesUp = {
+  // Scenario Pessimiste: Taux d'intérêt augmenté (+2%), Taxe foncière x1.5, et budget travaux doublé
+  const dataPessimiste = {
     ...baseData,
-    charges: baseData.charges.map(c => ({ ...c, value: c.value * higherChargesFactor })),
-    name: 'Hausse Charges'
+    tauxInteret: baseData.tauxInteret + 2,
+    travaux: baseData.travaux * 2,
+    charges: baseData.charges.map(c => {
+      if (c.name.toLowerCase().includes('foncière') || c.name.toLowerCase().includes('fonciere')) {
+        return { ...c, value: c.value * 1.5 };
+      }
+      return c;
+    }),
+    name: 'Pessimiste'
   };
 
   return {
     nominal: { ...baseData, name: 'Nominal' },
-    vacancy: dataVacancy,
-    rentDrop: dataRentDrop,
-    chargesUp: dataChargesUp
+    prudent: dataPrudent,
+    pessimiste: dataPessimiste
   };
 };
 
+
+/**
+ * Auto-estimates standard real estate charges.
+ */
+export const autoEstimateCharges = (prixAchat, totalLoyerMensuel) => {
+  return [
+    { id: crypto.randomUUID(), name: 'Taxe Foncière', value: Math.round(totalLoyerMensuel) }, // Approx 1 month rent
+    { id: crypto.randomUUID(), name: 'Assurance PNO', value: 150 }, // Standard 150€
+    { id: crypto.randomUUID(), name: 'Gestion Locative', value: Math.round(totalLoyerMensuel * 12 * 0.07) }, // 7% of annual rent
+    { id: crypto.randomUUID(), name: 'Entretien & Réparations', value: Math.round(prixAchat * 0.01) }, // 1% of purchase price
+    { id: crypto.randomUUID(), name: 'Copropriété', value: Math.round(totalLoyerMensuel * 12 * 0.10) }, // 10% of annual rent roughly
+    { id: crypto.randomUUID(), name: 'Comptabilité', value: 300 }, // Standard accountant
+  ];
+};
 
 /**
  * Calculates the gross and net rental yields.
@@ -251,6 +268,8 @@ export const calculateResults = (d) => {
       interests,
       amortTotal,
       impots,
+      impotsReel,
+      impotsMicro,
       bestRegime,
       cfNetNetYear,
       netWorth,
@@ -263,7 +282,7 @@ export const calculateResults = (d) => {
   const impotsFirstYear = firstYear.impots || 0;
   const cashflowNetNet = cashflowM - (impotsFirstYear / 12);
   const bestRegime = firstYear.bestRegime || 'micro';
-  const impotsReel = firstYear.impotsReel || 0; // Note: not stored in array above, simplified
+  const impotsReel = firstYear.impotsReel || 0;
   const impotsMicro = firstYear.impotsMicro || 0;
 
   // Bankability Check
@@ -280,6 +299,8 @@ export const calculateResults = (d) => {
     // Preserving old structure for compatibility where needed, but favoring projectionData
     bestRegime,
     impots: impotsFirstYear,
+    impotsReel,
+    impotsMicro,
   };
 };
 
