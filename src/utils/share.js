@@ -1,6 +1,8 @@
 export const encodeShareCode = (simulation) => {
   const json = JSON.stringify(simulation);
-  return btoa(json);
+  // Encode URI component to handle non-ASCII characters (e.g., accents, emojis) safely before btoa
+  const encoded = encodeURIComponent(json);
+  return btoa(encoded);
 };
 
 const validateSimulation = (sim) => {
@@ -61,8 +63,20 @@ const validateSimulation = (sim) => {
 
 export const decodeShareCode = (encoded) => {
   try {
-    const json = atob(encoded);
-    const result = JSON.parse(json);
+    // Decode from base64 first
+    let jsonString = atob(encoded);
+
+    // Attempt to decode assuming it was encoded with encodeURIComponent -> btoa
+    // Only if it looks like URI encoded JSON (%7B is '{')
+    if (jsonString.startsWith('%7B')) {
+      try {
+        jsonString = decodeURIComponent(jsonString);
+      } catch {
+        // If it fails, fallback to keeping jsonString as is
+      }
+    }
+
+    const result = JSON.parse(jsonString);
 
     if (validateSimulation(result)) {
       return result;
