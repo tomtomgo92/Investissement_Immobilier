@@ -1,6 +1,6 @@
 export const encodeShareCode = (simulation) => {
   const json = JSON.stringify(simulation);
-  return btoa(json);
+  return btoa(encodeURIComponent(json));
 };
 
 const validateSimulation = (sim) => {
@@ -61,7 +61,7 @@ const validateSimulation = (sim) => {
 
 export const decodeShareCode = (encoded) => {
   try {
-    const json = atob(encoded);
+    const json = decodeURIComponent(atob(encoded));
     const result = JSON.parse(json);
 
     if (validateSimulation(result)) {

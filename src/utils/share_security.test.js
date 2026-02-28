@@ -51,7 +51,7 @@ describe('share utils - security boundaries', () => {
   it('should reject Infinite numbers (Calculation break)', () => {
     const invalid = JSON.parse(JSON.stringify(validData));
     const json = JSON.stringify(invalid).replace('100000', '1e1000'); // Number too big for JS
-    const encoded = btoa(json);
+    const encoded = btoa(encodeURIComponent(json));
     const decoded = decodeShareCode(encoded);
     assert.strictEqual(decoded, null);
   });

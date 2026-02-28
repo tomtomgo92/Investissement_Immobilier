@@ -263,8 +263,6 @@ export const calculateResults = (d) => {
   const impotsFirstYear = firstYear.impots || 0;
   const cashflowNetNet = cashflowM - (impotsFirstYear / 12);
   const bestRegime = firstYear.bestRegime || 'micro';
-  const impotsReel = firstYear.impotsReel || 0; // Note: not stored in array above, simplified
-  const impotsMicro = firstYear.impotsMicro || 0;
 
   // Bankability Check
   const bankability = calculateBankability(d.revenusFoyer, d.chargesFoyer, recetteMensuelleRéelle, mCredit);

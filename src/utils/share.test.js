@@ -29,7 +29,7 @@ describe('share utils', () => {
   });
 
   it('should return null for invalid base64', () => {
-    const decoded = decodeShareCode('invalid-base64');
+    const decoded = decodeShareCode(btoa(encodeURIComponent('invalid-base64')));
     assert.strictEqual(decoded, null);
   });
 
