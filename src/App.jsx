@@ -34,6 +34,7 @@ import BankabilityIndicator from './components/BankabilityIndicator';
 import AmortizationChart from './components/AmortizationChart';
 import StressTestModule from './components/StressTestModule';
 import ReverseCalculator from './components/ReverseCalculator';
+import DealPipeline from './components/DealPipeline';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend);
 
@@ -56,8 +57,23 @@ export default function App() {
     if (saved) return JSON.parse(saved);
 
     // 3. Default fallback
-    return [{ id: uuidv4(), name: 'Investissement Lyon 3', data: { ...INITIAL_DATA } }];
+    return [{ id: uuidv4(), name: 'Investissement Lyon 3', pipelineStatus: 'À analyser', data: { ...INITIAL_DATA } }];
   });
+
+  // Backward compatibility: ensure existing simulations have a pipelineStatus
+  useEffect(() => {
+    setSimulations(prev => {
+      let changed = false;
+      const updated = prev.map(sim => {
+        if (!sim.pipelineStatus) {
+          changed = true;
+          return { ...sim, pipelineStatus: 'À analyser' };
+        }
+        return sim;
+      });
+      return changed ? updated : prev;
+    });
+  }, []);
 
   const [activeSimId, setActiveSimId] = useState(() => simulations[0]?.id || null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -225,6 +241,7 @@ export default function App() {
                 const n = {
                   id: uuidv4(),
                   name: `Projet ${simulations.length + 1}`,
+                  pipelineStatus: 'À analyser',
                   data: { ...INITIAL_DATA, charges: JSON.parse(JSON.stringify(INITIAL_CHARGES)) }
                 };
                 setSimulations([...simulations, n]);
@@ -247,10 +264,16 @@ export default function App() {
           </button>
           <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 mx-1" />
           <button
-            onClick={() => setViewMode(viewMode === 'dashboard' ? 'comparator' : 'dashboard')}
+            onClick={() => setViewMode(viewMode === 'pipeline' ? 'dashboard' : 'pipeline')}
+            className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'pipeline' ? 'bg-indigo-50 border-indigo-200 text-indigo-600 dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-300' : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+          >
+            <BarChart3 size={14} /> Pipeline
+          </button>
+          <button
+            onClick={() => setViewMode(viewMode === 'comparator' ? 'dashboard' : 'comparator')}
             className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'comparator' ? 'bg-indigo-50 border-indigo-200 text-indigo-600 dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-300' : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
           >
-            <Scale size={14} /> {viewMode === 'dashboard' ? 'Comparer' : 'Tableau de Bord'}
+            <Scale size={14} /> Comparer
           </button>
           <button
             onClick={shareSimulation}
@@ -269,7 +292,14 @@ export default function App() {
 
       <main className="flex-1 max-w-[1400px] mx-auto w-full p-6 space-y-8 animate-in fade-in duration-700">
 
-        {viewMode === 'comparator' ? (
+        {viewMode === 'pipeline' ? (
+          <DealPipeline
+            simulations={simulations}
+            setSimulations={setSimulations}
+            setActiveSimId={setActiveSimId}
+            setViewMode={setViewMode}
+          />
+        ) : viewMode === 'comparator' ? (
           <ScenarioComparator
             simulations={simulations}
             activeSimId={activeSimId}
