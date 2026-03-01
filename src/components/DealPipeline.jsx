@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { calculateResults } from '../utils/finance';
 import { formatE } from '../utils/formatters';
-import { ArrowLeft, ArrowRight, Wallet, TrendingUp, Search, PhoneCall, Calendar, Send, CheckCircle2, LayoutList } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Wallet, TrendingUp, Search, PhoneCall, Calendar, Send, CheckCircle2, LayoutList, Bell, BellRing } from 'lucide-react';
 
 const COLUMNS = [
   { id: 'À analyser', label: 'À analyser', icon: <Search size={14} /> },
@@ -20,10 +20,24 @@ export default function DealPipeline({ simulations, setSimulations, setActiveSim
         id: sim.id,
         name: sim.name,
         status: sim.pipelineStatus || 'À analyser',
+        hasAlert: sim.hasAlert || false,
         ...results
       };
     });
   }, [simulations]);
+
+  const toggleAlert = (simId) => {
+    setSimulations(prev => prev.map(s => {
+      if (s.id === simId) {
+        const isEnabling = !s.hasAlert;
+        if (isEnabling) {
+          alert(`Alerte activée pour "${s.name}". Vous serez notifié si le prix baisse ou dans 45 jours.`);
+        }
+        return { ...s, hasAlert: isEnabling };
+      }
+      return s;
+    }));
+  };
 
   const changeStatus = (simId, currentIndex, direction) => {
     const newIndex = currentIndex + direction;
@@ -72,8 +86,15 @@ export default function DealPipeline({ simulations, setSimulations, setActiveSim
                   columnSims.map(sim => (
                     <div key={sim.id} className="bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow group">
                       <div className="flex justify-between items-start mb-2">
-                        <button onClick={() => openSimulation(sim.id)} className="font-bold text-sm text-primary dark:text-white hover:text-accent text-left">
+                        <button onClick={() => openSimulation(sim.id)} className="font-bold text-sm text-primary dark:text-white hover:text-accent text-left pr-2">
                           {sim.name}
+                        </button>
+                        <button
+                          onClick={() => toggleAlert(sim.id)}
+                          title={sim.hasAlert ? "Désactiver l'alerte" : "Créer une alerte de prix"}
+                          className={`p-1 rounded-full transition-colors ${sim.hasAlert ? 'text-amber-500 bg-amber-50 dark:bg-amber-900/30' : 'text-slate-300 hover:text-amber-400 dark:text-slate-600 dark:hover:text-amber-500'}`}
+                        >
+                          {sim.hasAlert ? <BellRing size={14} /> : <Bell size={14} />}
                         </button>
                       </div>
 

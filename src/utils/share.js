@@ -1,5 +1,9 @@
-export const encodeShareCode = (simulation) => {
-  const json = JSON.stringify(simulation);
+export const encodeShareCode = (simulation, isBanker = false) => {
+  const payload = { ...simulation };
+  if (isBanker) {
+    payload.isBanker = true;
+  }
+  const json = JSON.stringify(payload);
   // Encode URI component to handle non-ASCII characters (e.g., accents, emojis) safely before btoa
   const encoded = encodeURIComponent(json);
   return btoa(encoded);
