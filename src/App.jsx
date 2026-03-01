@@ -16,7 +16,8 @@ import {
   INITIAL_DATA, INITIAL_CHARGES, TMI_OPTIONS,
   calculateResults, updateSimulationData, autoEstimateCharges
 } from './utils/finance';
-import { Wand2 } from 'lucide-react';
+import { Wand2, DownloadCloud, Loader2 } from 'lucide-react';
+import { scrapeUrl } from './utils/scraping';
 import { encodeShareCode, decodeShareCode } from './utils/share';
 import { formatE } from './utils/formatters';
 
@@ -51,6 +52,13 @@ export default function App() {
         window.history.replaceState(null, '', window.location.pathname);
         return [sharedSim];
       }
+    } else if (window.location.hash.startsWith('#banker=')) {
+      const encoded = window.location.hash.replace('#banker=', '');
+      const sharedSim = decodeShareCode(encoded);
+      if (sharedSim) {
+        window.history.replaceState(null, '', window.location.pathname);
+        return [sharedSim];
+      }
     }
     // 2. Check local storage
     const saved = localStorage.getItem('invest_simulations');
@@ -78,6 +86,10 @@ export default function App() {
   const [activeSimId, setActiveSimId] = useState(() => simulations[0]?.id || null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // URL Scraping state
+  const [importUrl, setImportUrl] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
 
   // Auto-Save Effect
   useEffect(() => {
@@ -205,7 +217,45 @@ export default function App() {
     navigator.clipboard.writeText(url).then(() => alert('Lien copié dans le presse-papier !'));
   };
 
+  const shareBankerSimulation = () => {
+    const encoded = encodeShareCode(activeSim, true);
+    const url = `${window.location.origin}${window.location.pathname}#banker=${encoded}`;
+    navigator.clipboard.writeText(url).then(() => alert('Lien Banquier copié dans le presse-papier !'));
+  };
+
   const toggleDimension = (dim) => setVisibleDimensions(p => ({ ...p, [dim]: !p[dim] }));
+
+  const handleImport = async () => {
+    if (!importUrl) return;
+    setIsImporting(true);
+    try {
+      const data = await scrapeUrl(importUrl);
+
+      // Update active simulation with scraped data
+      setSimulations(p => p.map(s => {
+        if (s.id !== activeSimId) return s;
+
+        let newData = { ...s.data, prixAchat: data.prixAchat };
+        // Estimate charges based on new price and current rents
+        const loyerMensuelTotal = s.data.loyers.reduce((acc, val) => acc + val, 0);
+        newData.charges = autoEstimateCharges(data.prixAchat, loyerMensuelTotal);
+
+        // Also update notaire fees
+        newData.fraisNotaire = Math.round(data.prixAchat * 0.08);
+
+        return {
+          ...s,
+          name: data.titre || s.name,
+          data: newData
+        };
+      }));
+      setImportUrl('');
+    } catch (err) {
+      alert("Erreur lors de l'import : " + err.message);
+    } finally {
+      setIsImporting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col font-sans transition-colors duration-300">
@@ -305,8 +355,81 @@ export default function App() {
             activeSimId={activeSimId}
             setActiveSimId={(id) => { setActiveSimId(id); setViewMode('dashboard'); }}
           />
+        ) : activeSim.isBanker ? (
+          <div className="max-w-4xl mx-auto space-y-8">
+            <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-xl p-6 text-center">
+              <Landmark size={48} className="mx-auto text-indigo-500 mb-4" />
+              <h1 className="text-2xl font-bold text-indigo-900 dark:text-indigo-100">Espace Banquier</h1>
+              <p className="text-sm text-indigo-600 dark:text-indigo-300 mt-2">Vue simplifiée. Ajustez les conditions de financement ci-dessous pour voir l'impact.</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <HeroKPI label="Cashflow Net" value={formatE(calculations.cashflowM)} color={calculations.cashflowM >= 0 ? "emerald" : "rose"} icon={<ArrowRightLeft />} highlight />
+              <div className="bg-white dark:bg-slate-900 rounded-xl border p-4">
+                <BankabilityIndicator bankability={calculations.bankability} />
+              </div>
+            </div>
+
+            <DashboardSection title="Financement (Modifiable)" icon={<Landmark size={18} className="text-amber-500" />}>
+              <PremiumInput label="Apport Personnel" value={activeSim.data.apport} onChange={(v) => updateData('apport', v)} />
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <PremiumInput label="Taux %" value={activeSim.data.tauxInteret} onChange={(v) => updateData('tauxInteret', v)} suffix="%" />
+                <PremiumInput label="Durée" value={activeSim.data.dureeCredit} onChange={(v) => updateData('dureeCredit', v)} suffix="Ans" />
+              </div>
+            </DashboardSection>
+
+            <DashboardSection title="Détails du Projet (Lecture Seule)" icon={<Home size={18} className="text-accent" />}>
+               <div className="grid grid-cols-2 gap-4 text-sm">
+                 <div>
+                   <span className="text-slate-500 block text-xs">Prix d'Achat</span>
+                   <span className="font-bold">{formatE(activeSim.data.prixAchat)}</span>
+                 </div>
+                 <div>
+                   <span className="text-slate-500 block text-xs">Travaux</span>
+                   <span className="font-bold">{formatE(activeSim.data.travaux)}</span>
+                 </div>
+                 <div>
+                   <span className="text-slate-500 block text-xs">Revenus Locatifs Brut/Mois</span>
+                   <span className="font-bold">{formatE(calculations.recetteMensuelleBrute)}</span>
+                 </div>
+                 <div>
+                   <span className="text-slate-500 block text-xs">Charges Annuelles</span>
+                   <span className="font-bold">{formatE(calculations.totalChargesAnnuelles)}</span>
+                 </div>
+               </div>
+            </DashboardSection>
+          </div>
         ) : (
           <>
+            {/* URL Import Banner */}
+            <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="bg-indigo-100 dark:bg-indigo-800 p-2 rounded-lg text-indigo-600 dark:text-indigo-300">
+                  <DownloadCloud size={20} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-indigo-900 dark:text-indigo-100">Import Magique</h3>
+                  <p className="text-xs text-indigo-600/80 dark:text-indigo-400">Collez le lien d'une annonce (Leboncoin, SeLoger) pour auto-remplir le projet.</p>
+                </div>
+              </div>
+              <div className="flex w-full sm:w-auto gap-2">
+                <input
+                  type="url"
+                  placeholder="https://www.leboncoin.fr/ad/..."
+                  value={importUrl}
+                  onChange={(e) => setImportUrl(e.target.value)}
+                  className="flex-1 sm:w-64 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700 dark:text-slate-200"
+                />
+                <button
+                  onClick={handleImport}
+                  disabled={!importUrl || isImporting}
+                  className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-sm"
+                >
+                  {isImporting ? <Loader2 size={16} className="animate-spin" /> : "Importer"}
+                </button>
+              </div>
+            </div>
+
             {/* KPI Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <HeroKPI label="Cashflow Net" value={formatE(calculations.cashflowM)} color={calculations.cashflowM >= 0 ? "emerald" : "rose"} icon={<ArrowRightLeft />} highlight sub="Projection Mensuelle" />
