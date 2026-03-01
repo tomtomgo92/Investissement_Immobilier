@@ -272,8 +272,6 @@ export const calculateResults = (d) => {
       impotsMicro,
       bestRegime,
       cfNetNetYear,
-      impotsReel,
-      impotsMicro,
       netWorth,
       cumCashflow
     });
