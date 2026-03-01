@@ -1,3 +1,6 @@
 ## 2024-05-24 - Deep Cloning in Tight Loops
 **Learning:** `JSON.parse(JSON.stringify(data))` inside a tight binary search loop (up to 50 iterations per render cycle) causes significant overhead and GC thrashing. Replacing it with a shallow object copy (`{ ...data }`) completely avoids the expensive parsing/stringifying and drops execution time by up to 60%.
 **Action:** When repeatedly modifying state for "what-if" calculations inside loops, use shallow copies and carefully update the reference values instead of performing a deep clone.
+## 2024-05-25 - Expensive Loops and Unnecessary Re-renders
+**Learning:** Functions that perform significant calculations through loops (like 50-iteration binary searches or mapping 20 years of projections) should not be evaluated synchronously on *every single render* of a component. Doing so causes deep UI unresponsiveness whenever unrelated, lightweight state (like toggling a chart dimension) changes.
+**Action:** Aggressively wrap heavy computation blocks (especially those calculating "what-if" scenarios like `maxPrice` or `minRent`) inside `useMemo` hooks, and any nested evaluation methods in `useCallback` hooks, depending strictly on the input variables they actually need.
