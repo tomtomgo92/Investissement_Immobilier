@@ -64,6 +64,47 @@ export const calculateMonthlyPayment = (loanAmount, tauxInteret, dureeCredit) =>
 };
 
 /**
+ * ⚡ Bolt Optimization: Calculates amortization schedule aggregated by year directly.
+ * Impact: Avoids allocating N objects and a large array (e.g. 240 months for a 20-year loan)
+ * during intermediate calculation, reducing time complexity and garbage collection overhead.
+ */
+export const calculateYearlyAmortization = (loanAmount, annualRate, durationYears, monthlyPayment) => {
+  const yearlySchedule = {};
+  let remainingCapital = loanAmount;
+  const monthlyRate = annualRate / 100 / 12;
+  const totalMonths = durationYears * 12;
+
+  let currentYear = 1;
+  let yearlyInterest = 0;
+  let yearlyCapital = 0;
+  const payment = monthlyPayment || calculateMonthlyPayment(loanAmount, annualRate, durationYears);
+
+  for (let m = 1; m <= totalMonths; m++) {
+    const interest = remainingCapital * monthlyRate;
+    const capital = payment - interest;
+    remainingCapital -= capital;
+    if (remainingCapital < 0) remainingCapital = 0;
+
+    yearlyInterest += interest;
+    yearlyCapital += capital;
+
+    if (m % 12 === 0 || remainingCapital <= 0 || m === totalMonths) {
+      yearlySchedule[currentYear] = {
+        interest: yearlyInterest,
+        capital: yearlyCapital,
+        remainingCapital: remainingCapital
+      };
+      currentYear++;
+      yearlyInterest = 0;
+      yearlyCapital = 0;
+    }
+
+    if (remainingCapital <= 0) break;
+  }
+  return yearlySchedule;
+};
+
+/**
  * Generates a full amortization schedule (capital/interest split per month).
  */
 export const calculateAmortizationSchedule = (loanAmount, annualRate, durationYears, monthlyPayment) => {
@@ -202,8 +243,7 @@ export const calculateResults = (d) => {
   }
 
   // Generate Amortization Schedule (Yearly Aggregates)
-  const schedule = calculateAmortizationSchedule(loanAmount, d.tauxInteret, d.dureeCredit, mCredit);
-  const yearlySchedule = aggregateScheduleByYear(schedule);
+  const yearlySchedule = calculateYearlyAmortization(loanAmount, d.tauxInteret, d.dureeCredit, mCredit);
 
 
   // Operational Flows
