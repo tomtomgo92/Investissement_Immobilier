@@ -24,7 +24,8 @@ export default function PremiumInput({ label, value, onChange, tooltip, suffix =
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all outline-none"
                 />
                 {suffix && (
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">
+                    <span aria-hidden="true"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium pointer-events-none">
                         {suffix}
                     </span>
                 )}
