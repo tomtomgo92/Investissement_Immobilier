@@ -217,6 +217,7 @@ export default function App() {
     navigator.clipboard.writeText(url).then(() => alert('Lien copié dans le presse-papier !'));
   };
 
+  // eslint-disable-next-line no-unused-vars
   const shareBankerSimulation = () => {
     const encoded = encodeShareCode(activeSim, true);
     const url = `${window.location.origin}${window.location.pathname}#banker=${encoded}`;
