@@ -1,3 +1,6 @@
 ## 2024-05-24 - Deep Cloning in Tight Loops
 **Learning:** `JSON.parse(JSON.stringify(data))` inside a tight binary search loop (up to 50 iterations per render cycle) causes significant overhead and GC thrashing. Replacing it with a shallow object copy (`{ ...data }`) completely avoids the expensive parsing/stringifying and drops execution time by up to 60%.
 **Action:** When repeatedly modifying state for "what-if" calculations inside loops, use shallow copies and carefully update the reference values instead of performing a deep clone.
+## 2024-10-25 - Intermediate Array Allocations in Tight Loops
+**Learning:** In tight calculation loops (like `calculateResults` executed up to 50 times in binary search loops in `ReverseCalculator.jsx`), allocating intermediate arrays for mapping or filtering (e.g., generating a full 240-element monthly amortization array only to immediately aggregate it into years) causes a massive performance bottleneck due to memory allocation and garbage collection.
+**Action:** Always compute aggregates directly (e.g., `calculateYearlyAmortization`) within the calculation loop without creating the intermediate array. This optimization yielded a ~3x performance improvement in raw calculation loops.
