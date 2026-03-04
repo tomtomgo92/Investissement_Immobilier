@@ -13,13 +13,35 @@ export const scrapeUrl = (url) => {
     // Simulate network delay
     setTimeout(() => {
       // Mock data extraction based on URL
-      // In a real scenario, this would call a backend service that performs the actual scraping.
-      resolve({
-        prixAchat: Math.floor(Math.random() * 200000) + 100000, // Random price between 100k and 300k
-        surface: Math.floor(Math.random() * 80) + 20, // Random surface between 20m² and 100m²
-        dpe: ['A', 'B', 'C', 'D', 'E', 'F', 'G'][Math.floor(Math.random() * 7)], // Random DPE
-        titre: "Appartement T" + (Math.floor(Math.random() * 4) + 1) + " hyper centre",
-      });
+      const lowerUrl = url.toLowerCase();
+
+      if (lowerUrl.includes('leboncoin.fr')) {
+        resolve({
+          prixAchat: 145000,
+          surface: 45,
+          dpe: 'C',
+          titre: "Appartement T2 rénové",
+          codePostal: '69003'
+        });
+      } else if (lowerUrl.includes('seloger.com')) {
+        resolve({
+          prixAchat: 210000,
+          surface: 65,
+          dpe: 'D',
+          titre: "Superbe T3 lumineux",
+          codePostal: '75011'
+        });
+      } else if (lowerUrl.includes('bienici.com')) {
+         resolve({
+          prixAchat: 85000,
+          surface: 25,
+          dpe: 'E',
+          titre: "Studio étudiant hyper centre",
+          codePostal: '31000'
+        });
+      } else {
+         reject(new Error("Domaine non supporté. Essayez Leboncoin, SeLoger, ou BienIci."));
+      }
     }, 1500); // 1.5 seconds delay
   });
 };
