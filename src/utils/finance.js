@@ -337,6 +337,70 @@ export const calculateResults = (d) => {
   };
 };
 
+/**
+ * ⚡ Bolt Optimization: Lightweight calculation specifically for the Deal Pipeline.
+ * Bypasses the expensive 20-year projection loops and only calculates the minimum
+ * required fields (investTotal, rNet, cashflowNetNet).
+ * Impact: O(N) to O(1) array processing reduction per pipeline card.
+ */
+export const calculatePipelineMetrics = (d) => {
+  const investTotal = calculateInvestmentTotal(d.prixAchat, d.travaux, d.fraisNotaire);
+  const loanAmount = calculateLoanAmount(investTotal, d.apport);
+
+  // Credit Calculation
+  let mCredit = d.mensualiteCredit;
+  if (d.autoCredit) {
+    mCredit = calculateMonthlyPayment(loanAmount, d.tauxInteret, d.dureeCredit);
+  }
+
+  // Generate Year 1 Amortization directly to calculate first year tax
+  const yearlySchedule = calculateYearlyAmortization(loanAmount, d.tauxInteret, d.dureeCredit, mCredit);
+
+  // Operational Flows
+  const recetteMensuelleBrute = d.loyers.reduce((acc, curr) => acc + curr, 0);
+  const recetteMensuelleRéelle = recetteMensuelleBrute * (1 - (d.vacanceLocative / 100));
+  const recetteAnnuelle = recetteMensuelleRéelle * 12;
+  const totalChargesAnnuelles = d.charges.reduce((acc, c) => acc + c.value, 0);
+  const creditAnnee = mCredit * 12;
+
+  // Yields
+  const { rNet } = calculateRentalYields({
+    investTotal,
+    monthlyGrossRent: recetteMensuelleBrute,
+    annualRealRent: recetteAnnuelle,
+    annualCharges: totalChargesAnnuelles
+  });
+
+  const beneficeAn = recetteAnnuelle - (creditAnnee + totalChargesAnnuelles);
+  const cashflowM = beneficeAn / 12;
+
+  // --- Dynamic Tax Projection (Year 1 ONLY) ---
+  const amortissementImmobilier = (d.prixAchat * 0.85 + d.fraisNotaire) / 30;
+  const amortissementMobilier = (d.travaux) / 10;
+
+  const interests = yearlySchedule[1] ? yearlySchedule[1].interest : 0;
+  const amortTotal = amortissementImmobilier + amortissementMobilier;
+
+  // LMNP Réel
+  const resultatFiscalReel = Math.max(0, recetteAnnuelle - totalChargesAnnuelles - interests - amortTotal);
+  const impotsReel = resultatFiscalReel * ((d.tmi + 17.2) / 100);
+
+  // Micro-BIC
+  const resultatFiscalMicro = Math.max(0, recetteAnnuelle * 0.5);
+  const impotsMicro = resultatFiscalMicro * ((d.tmi + 17.2) / 100);
+
+  const impotsFirstYear = Math.min(impotsReel, impotsMicro);
+
+  // Cashflow Net Net (Year 1)
+  const cashflowNetNet = cashflowM - (impotsFirstYear / 12);
+
+  return {
+    investTotal,
+    rNet,
+    cashflowNetNet
+  };
+};
+
 export const updateSimulationData = (data, field, value) => {
   const numericValue = parseFloat(value) || 0;
   const newData = { ...data, [field]: numericValue };

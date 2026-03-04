@@ -4,3 +4,7 @@
 ## 2024-10-25 - Intermediate Array Allocations in Tight Loops
 **Learning:** In tight calculation loops (like `calculateResults` executed up to 50 times in binary search loops in `ReverseCalculator.jsx`), allocating intermediate arrays for mapping or filtering (e.g., generating a full 240-element monthly amortization array only to immediately aggregate it into years) causes a massive performance bottleneck due to memory allocation and garbage collection.
 **Action:** Always compute aggregates directly (e.g., `calculateYearlyAmortization`) within the calculation loop without creating the intermediate array. This optimization yielded a ~3x performance improvement in raw calculation loops.
+
+## 2024-10-25 - Unnecessary Heavy Calculations in Lists
+**Learning:** Running full simulation loops (like 20-year projections) inside a list mapping function (`DealPipeline.jsx`) when only summary metrics are needed causes significant UI lag as the list grows. The `useMemo` triggers a massive amount of unused array allocations.
+**Action:** Create a lightweight, specialized calculation function (`calculatePipelineMetrics`) that explicitly bypasses expensive projections and only computes what the UI actually renders.
