@@ -30,6 +30,7 @@ import Toggle from './components/Toggle';
 import DimensionToggle from './components/DimensionToggle';
 import CalculationBreakdown from './components/CalculationBreakdown';
 import PdfReport from './components/PdfReport';
+import BankReport from './components/BankReport';
 import ScenarioComparator from './components/ScenarioComparator';
 import BankabilityIndicator from './components/BankabilityIndicator';
 import AmortizationChart from './components/AmortizationChart';
@@ -85,6 +86,7 @@ export default function App() {
 
   const [activeSimId, setActiveSimId] = useState(() => simulations[0]?.id || null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingBankReport, setIsGeneratingBankReport] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // URL Scraping state
@@ -114,6 +116,7 @@ export default function App() {
   });
 
   const reportRef = useRef(null);
+  const bankReportRef = useRef(null);
   const activeSim = simulations.find(s => s.id === activeSimId) || simulations[0];
 
   // ⚡ Bolt Optimization: Memoize calculations strictly on activeSim.data rather than activeSim.
@@ -209,7 +212,42 @@ export default function App() {
     }
   }, [isGenerating, activeSim.name]);
 
+  useEffect(() => {
+    if (isGeneratingBankReport && bankReportRef.current) {
+      const generatePdf = async () => {
+        try {
+          const { default: html2canvas } = await import('html2canvas');
+          const { default: jsPDF } = await import('jspdf');
+
+          const canvas = await html2canvas(bankReportRef.current, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff',
+            windowWidth: 1200,
+            onclone: (clonedDoc) => {
+              // Remove all styles/links to prevent oklch parsing errors
+              const styles = clonedDoc.getElementsByTagName('style');
+              for (let i = styles.length - 1; i >= 0; i--) styles[i].remove();
+              const links = clonedDoc.getElementsByTagName('link');
+              for (let i = links.length - 1; i >= 0; i--) links[i].remove();
+            }
+          });
+          const pdf = new jsPDF('p', 'mm', 'a4');
+          pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
+          pdf.save(`DossierBancaire_${activeSim.name}.pdf`);
+        } catch (err) {
+          console.error(err);
+          alert("Erreur PDF: " + err.message);
+        } finally {
+          setIsGeneratingBankReport(false);
+        }
+      };
+      generatePdf();
+    }
+  }, [isGeneratingBankReport, activeSim.name]);
+
   const exportSyntheticPDF = () => setIsGenerating(true);
+  const exportBankReportPDF = () => setIsGeneratingBankReport(true);
 
   const shareSimulation = () => {
     const encoded = encodeShareCode(activeSim);
@@ -237,8 +275,15 @@ export default function App() {
         if (s.id !== activeSimId) return s;
 
         let newData = { ...s.data, prixAchat: data.prixAchat };
+
+        // Update rents and colocation
+        if (data.loyerEstime) {
+          newData.loyers = [data.loyerEstime];
+          newData.nbColocs = 1;
+        }
+
         // Estimate charges based on new price and current rents
-        const loyerMensuelTotal = s.data.loyers.reduce((acc, val) => acc + val, 0);
+        const loyerMensuelTotal = newData.loyers.reduce((acc, val) => acc + val, 0);
         newData.charges = autoEstimateCharges(data.prixAchat, loyerMensuelTotal);
 
         // Also update notaire fees
@@ -334,9 +379,15 @@ export default function App() {
           </button>
           <button
             onClick={exportSyntheticPDF}
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-lg text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+          >
+            {isGenerating ? <div className="animate-spin h-3 w-3 border-2 border-slate-400 border-t-transparent rounded-full" /> : <><FileText size={14} /> Bilan PDF</>}
+          </button>
+          <button
+            onClick={exportBankReportPDF}
             className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-all shadow-sm active:scale-95"
           >
-            {isGenerating ? <div className="animate-spin h-3 w-3 border-2 border-white/30 border-t-white rounded-full" /> : <><FileText size={14} /> Exporter PDF</>}
+            {isGeneratingBankReport ? <div className="animate-spin h-3 w-3 border-2 border-white/30 border-t-white rounded-full" /> : <><Landmark size={14} /> Dossier Bancaire</>}
           </button>
         </div>
       </header>
@@ -675,6 +726,12 @@ export default function App() {
       {isGenerating && (
         <div className="fixed left-[-9999px] top-0 pointer-events-none">
           <PdfReport ref={reportRef} activeSim={activeSim} calculations={calculations} />
+        </div>
+      )}
+
+      {isGeneratingBankReport && (
+        <div className="fixed left-[-9999px] top-0 pointer-events-none">
+          <BankReport ref={bankReportRef} activeSim={activeSim} calculations={calculations} />
         </div>
       )}
     </div>

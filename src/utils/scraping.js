@@ -19,6 +19,7 @@ export const scrapeUrl = (url) => {
         surface: Math.floor(Math.random() * 80) + 20, // Random surface between 20m² and 100m²
         dpe: ['A', 'B', 'C', 'D', 'E', 'F', 'G'][Math.floor(Math.random() * 7)], // Random DPE
         titre: "Appartement T" + (Math.floor(Math.random() * 4) + 1) + " hyper centre",
+        loyerEstime: Math.floor(Math.random() * 400) + 500 // Random rent between 500 and 900
       });
     }, 1500); // 1.5 seconds delay
   });

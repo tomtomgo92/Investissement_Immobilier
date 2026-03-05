@@ -147,7 +147,7 @@ export const calculateYearlyAmortization = (loanAmount, annualRate, durationYear
 /**
  * Calculates Bankability / Debt Ratio.
  */
-export const calculateBankability = (revenusFoyer, chargesFoyer, loyerPondere, mensualiteCredit) => {
+export const calculateBankability = (revenusFoyer, chargesFoyer, loyerPondere, mensualiteCredit, totalChargesAnnuelles) => {
   // HCSF Calculation typically uses 70% of rental income
   const totalRevenus = revenusFoyer + (loyerPondere * 0.7);
   const totalCharges = chargesFoyer + mensualiteCredit;
@@ -155,12 +155,20 @@ export const calculateBankability = (revenusFoyer, chargesFoyer, loyerPondere, m
   const tauxEndettement = totalRevenus > 0 ? (totalCharges / totalRevenus) * 100 : 0;
   const resteAVivre = totalRevenus - totalCharges;
 
+  // Differential debt ratio calculation
+  const tauxEndettementAvant = revenusFoyer > 0 ? (chargesFoyer / revenusFoyer) * 100 : 0;
+
+  // Effort d'épargne: Différence entre ce que le projet coûte (mensualité + charges nettes mensuelles)
+  // et ce qu'il rapporte (loyer pondéré)
+  // Une estimation simple : (mensualité + charges mensuelles) - revenus locatifs réels
+  const effortEpargne = (mensualiteCredit + (totalChargesAnnuelles / 12)) - loyerPondere;
+
   // Simple heuristic for status
   let status = 'green';
   if (tauxEndettement > 35) status = 'red';
   else if (tauxEndettement > 33) status = 'orange';
 
-  return { tauxEndettement, resteAVivre, status };
+  return { tauxEndettement, resteAVivre, status, tauxEndettementAvant, effortEpargne };
 };
 
 
@@ -319,7 +327,7 @@ export const calculateResults = (d) => {
   const impotsMicro = firstYear.impotsMicro || 0;
 
   // Bankability Check
-  const bankability = calculateBankability(d.revenusFoyer, d.chargesFoyer, recetteMensuelleRéelle, mCredit);
+  const bankability = calculateBankability(d.revenusFoyer, d.chargesFoyer, recetteMensuelleRéelle, mCredit, totalChargesAnnuelles);
 
   return {
     investTotal, loanAmount, recetteMensuelleBrute, recetteAnnuelle, totalChargesAnnuelles,
