@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { calculateResults } from '../utils/finance';
+import { calculatePipelineMetrics } from '../utils/finance';
 import { formatE } from '../utils/formatters';
 import { ArrowLeft, ArrowRight, Wallet, TrendingUp, Search, PhoneCall, Calendar, Send, CheckCircle2, LayoutList, Bell, BellRing } from 'lucide-react';
 
@@ -15,7 +15,7 @@ export default function DealPipeline({ simulations, setSimulations, setActiveSim
   // Pre-calculate results for each simulation to display key metrics
   const pipelineData = useMemo(() => {
     return simulations.map(sim => {
-      const results = calculateResults(sim.data);
+      const results = calculatePipelineMetrics(sim.data);
       return {
         id: sim.id,
         name: sim.name,

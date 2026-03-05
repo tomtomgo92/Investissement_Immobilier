@@ -225,6 +225,74 @@ export function calculateRentalYields({ investTotal, monthlyGrossRent, annualRea
 /**
  * Calculates all simulation results.
  */
+
+/**
+ * ⚡ Bolt Optimization: Calculates only summary metrics needed for pipeline display.
+ * Avoids the expensive 20-year projection loop and full amortization schedule generation.
+ */
+export const calculatePipelineMetrics = (d) => {
+  const investTotal = calculateInvestmentTotal(d.prixAchat, d.travaux, d.fraisNotaire);
+  const loanAmount = calculateLoanAmount(investTotal, d.apport);
+
+  // Credit Calculation
+  let mCredit = d.mensualiteCredit;
+  if (d.autoCredit) {
+    mCredit = calculateMonthlyPayment(loanAmount, d.tauxInteret, d.dureeCredit);
+  }
+
+  // Operational Flows
+  const recetteMensuelleBrute = d.loyers.reduce((acc, curr) => acc + curr, 0);
+  const recetteMensuelleRéelle = recetteMensuelleBrute * (1 - (d.vacanceLocative / 100));
+  const recetteAnnuelle = recetteMensuelleRéelle * 12;
+  const totalChargesAnnuelles = d.charges.reduce((acc, c) => acc + c.value, 0);
+  const creditAnnee = mCredit * 12;
+
+  // Yields
+  const { rNet } = calculateRentalYields({
+    investTotal,
+    monthlyGrossRent: recetteMensuelleBrute,
+    annualRealRent: recetteAnnuelle,
+    annualCharges: totalChargesAnnuelles
+  });
+
+  const beneficeAn = recetteAnnuelle - (creditAnnee + totalChargesAnnuelles);
+  const cashflowM = beneficeAn / 12;
+
+  // Simplified Year 1 Interest Calculation
+  let interestsFirstYear = 0;
+  let remainingCapital = loanAmount;
+  const monthlyRate = d.tauxInteret / 100 / 12;
+  const payment = mCredit;
+  for (let m = 1; m <= 12; m++) {
+    const interest = remainingCapital * monthlyRate;
+    const capital = payment - interest;
+    remainingCapital -= capital;
+    if (remainingCapital < 0) remainingCapital = 0;
+    interestsFirstYear += interest;
+    if (remainingCapital <= 0) break;
+  }
+
+  // --- Simplified Tax Projection (Year 1 only) ---
+  const amortissementImmobilier = (d.prixAchat * 0.85 + d.fraisNotaire) / 30; // 30 years approx
+  const amortissementMobilier = (d.travaux) / 10; // 10 years for furniture/works approx
+  const amortTotal = amortissementImmobilier + amortissementMobilier;
+
+  // 2. LMNP Réel Calculation
+  const resultatFiscalReel = Math.max(0, recetteAnnuelle - totalChargesAnnuelles - interestsFirstYear - amortTotal);
+  const impotsReel = resultatFiscalReel * ((d.tmi + 17.2) / 100);
+
+  // 3. Micro-BIC (50% abatement)
+  const resultatFiscalMicro = Math.max(0, recetteAnnuelle * 0.5);
+  const impotsMicro = resultatFiscalMicro * ((d.tmi + 17.2) / 100);
+
+  const impotsFirstYear = Math.min(impotsReel, impotsMicro);
+
+  // Cashflow Net Net for Year 1
+  const cashflowNetNet = cashflowM - (impotsFirstYear / 12);
+
+  return { investTotal, rNet, cashflowNetNet };
+};
+
 export const calculateResults = (d) => {
   const investTotal = calculateInvestmentTotal(d.prixAchat, d.travaux, d.fraisNotaire);
   const loanAmount = calculateLoanAmount(investTotal, d.apport);
