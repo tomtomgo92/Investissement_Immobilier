@@ -5,7 +5,8 @@ export default function DimensionToggle({ active, onClick, dot, label }) {
     return (
         <button
             onClick={onClick}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all text-[10px] font-bold uppercase tracking-tight ${active
+            aria-pressed={active}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all text-[10px] font-bold uppercase tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-900 ${active
                     ? 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-800 text-primary dark:text-white shadow-sm'
                     : 'border-transparent text-slate-400 opacity-60 hover:opacity-100'
                 }`}
