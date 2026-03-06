@@ -17,6 +17,8 @@ describe('share utils - security boundaries', () => {
       mensualiteCredit: 500,
       vacanceLocative: 5,
       tmi: 30,
+      typeLocation: 'meuble_long',
+      regimeFiscal: 'auto',
       nbColocs: 3,
       charges: [{ id: '1', name: 'Charge', value: 100 }],
       loyers: [500, 500]

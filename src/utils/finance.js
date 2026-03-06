@@ -24,9 +24,28 @@ export const INITIAL_DATA = {
   charges: [...INITIAL_CHARGES],
   vacanceLocative: 5,
   tmi: 30, // Tranche Marginale d'Imposition default
+  typeLocation: 'meuble_long',
+  regimeFiscal: 'auto',
 };
 
 export const TMI_OPTIONS = [0, 11, 30, 41, 45];
+
+export const REGIME_LABELS = {
+  auto: 'Recommandé (Auto)',
+  micro_foncier: 'Nom Propre - Micro-Foncier',
+  foncier_reel: 'Nom Propre - Foncier Réel',
+  sci_ir: 'Société - SCI à l\'IR',
+  sci_is: 'Société - SCI à l\'IS',
+  micro_bic: 'Nom Propre - Micro-BIC',
+  bic_reel: 'Nom Propre - LMNP Réel'
+};
+
+export const TYPE_LOCATION_LABELS = {
+  nue: 'Location Nue',
+  meuble_long: 'Meublé Longue Durée',
+  colocation: 'Colocation Meublée',
+  courte_duree: 'Courte Durée (Airbnb)'
+};
 
 /**
  * Calculates the notary fee (approx 8%).
@@ -259,41 +278,141 @@ export const calculateResults = (d) => {
   const cashflowM = beneficeAn / 12;
 
   // --- Dynamic Tax Projection (Year by Year) ---
-  const amortissementImmobilier = (d.prixAchat * 0.85 + d.fraisNotaire) / 30; // 30 years approx
-  const amortissementMobilier = (d.travaux) / 10; // 10 years for furniture/works approx
+  const amortissementImmobilier = (d.prixAchat * 0.85 + d.fraisNotaire) / 30; // 30 ans approx
+  const amortissementMobilier = (d.travaux) / 10; // 10 ans pour travaux/meubles approx
 
-  const projectionData = [];
   const years = 20;
 
+  const calculateTaxesForRegime = (regime) => {
+     let taxes = [];
+     let deficitReportable = 0;
+     let amortBicReportable = 0;
+
+     for (let year = 1; year <= years; year++) {
+        const interests = yearlySchedule[year] ? yearlySchedule[year].interest : 0;
+        let amortTotal = 0;
+        if (year <= 30) amortTotal += amortissementImmobilier;
+        if (year <= 10) amortTotal += amortissementMobilier;
+
+        if (regime === 'micro_foncier') {
+           const impots = (recetteAnnuelle <= 15000) ? (recetteAnnuelle * 0.7) * ((d.tmi + 17.2) / 100) : 0;
+           taxes.push(impots);
+        } else if (regime === 'foncier_reel' || regime === 'sci_ir') {
+           let res = recetteAnnuelle - totalChargesAnnuelles - interests;
+           if (res < 0) {
+              deficitReportable += Math.abs(res);
+              taxes.push(0);
+           } else {
+              if (res >= deficitReportable) {
+                 res -= deficitReportable;
+                 deficitReportable = 0;
+              } else {
+                 deficitReportable -= res;
+                 res = 0;
+              }
+              taxes.push(res * ((d.tmi + 17.2) / 100));
+           }
+        } else if (regime === 'micro_bic') {
+           const limit = (d.typeLocation === 'courte_duree') ? 15000 : 77700; // Simplified limit logic
+           const abattement = (d.typeLocation === 'courte_duree') ? 0.5 : 0.5; // Simplified
+           const impots = (recetteAnnuelle <= limit) ? (recetteAnnuelle * abattement) * ((d.tmi + 17.2) / 100) : 0;
+           taxes.push(impots);
+        } else if (regime === 'bic_reel') {
+           let resAvantAmort = recetteAnnuelle - totalChargesAnnuelles - interests;
+           if (resAvantAmort < 0) {
+              deficitReportable += Math.abs(resAvantAmort);
+              amortBicReportable += amortTotal;
+              taxes.push(0);
+           } else {
+              if (resAvantAmort >= deficitReportable) {
+                 resAvantAmort -= deficitReportable;
+                 deficitReportable = 0;
+              } else {
+                 deficitReportable -= resAvantAmort;
+                 resAvantAmort = 0;
+              }
+
+              if (resAvantAmort > 0) {
+                 const amortDeductible = amortTotal + amortBicReportable;
+                 if (resAvantAmort >= amortDeductible) {
+                    resAvantAmort -= amortDeductible;
+                    amortBicReportable = 0;
+                 } else {
+                    amortBicReportable = amortDeductible - resAvantAmort;
+                    resAvantAmort = 0;
+                 }
+              }
+              taxes.push(resAvantAmort * ((d.tmi + 17.2) / 100));
+           }
+        } else if (regime === 'sci_is') {
+           let res = recetteAnnuelle - totalChargesAnnuelles - interests - amortTotal;
+           if (res < 0) {
+              deficitReportable += Math.abs(res);
+              taxes.push(0);
+           } else {
+              if (res >= deficitReportable) {
+                 res -= deficitReportable;
+                 deficitReportable = 0;
+              } else {
+                 deficitReportable -= res;
+                 res = 0;
+              }
+
+              if (res <= 42500) {
+                 taxes.push(res * 0.15);
+              } else {
+                 taxes.push((42500 * 0.15) + ((res - 42500) * 0.25));
+              }
+           }
+        }
+     }
+     return taxes;
+  };
+
+  const typeLoc = d.typeLocation || 'meuble_long';
+  let validRegimes = [];
+  if (typeLoc === 'nue') {
+     validRegimes = ['micro_foncier', 'foncier_reel', 'sci_ir', 'sci_is'];
+     if (recetteAnnuelle > 15000) validRegimes = validRegimes.filter(r => r !== 'micro_foncier');
+  } else {
+     validRegimes = ['micro_bic', 'bic_reel', 'sci_is'];
+     const limit = (typeLoc === 'courte_duree') ? 15000 : 77700;
+     if (recetteAnnuelle > limit) validRegimes = validRegimes.filter(r => r !== 'micro_bic');
+  }
+
+  const taxesByRegime = {};
+  validRegimes.forEach(reg => {
+     taxesByRegime[reg] = calculateTaxesForRegime(reg);
+  });
+
+  let optimalRegime = validRegimes[0];
+  let minTotalTax = Infinity;
+  validRegimes.forEach(reg => {
+     const totalTax = taxesByRegime[reg].reduce((a, b) => a + b, 0);
+     if (totalTax < minTotalTax) {
+        minTotalTax = totalTax;
+        optimalRegime = reg;
+     }
+  });
+
+  const selectedRegime = (!d.regimeFiscal || d.regimeFiscal === 'auto') ? optimalRegime : d.regimeFiscal;
+  const actualRegime = validRegimes.includes(selectedRegime) ? selectedRegime : optimalRegime;
+  const appliedTaxes = taxesByRegime[actualRegime];
+
+  const projectionData = [];
+
   for (let year = 1; year <= years; year++) {
-    // 1. Interest for this year (from schedule or 0 if loan over)
     const interests = yearlySchedule[year] ? yearlySchedule[year].interest : 0;
     const remainingDebt = yearlySchedule[year] ? yearlySchedule[year].remainingCapital : 0;
-
-    // 2. LMNP Réel Calculation
-    // Resultat = Recettes - Charges - Intérêts - Amortissements
-    // Amortissement stops after its duration
     let amortTotal = 0;
     if (year <= 30) amortTotal += amortissementImmobilier;
     if (year <= 10) amortTotal += amortissementMobilier;
 
-    const resultatFiscalReel = Math.max(0, recetteAnnuelle - totalChargesAnnuelles - interests - amortTotal);
-    const impotsReel = resultatFiscalReel * ((d.tmi + 17.2) / 100);
+    const impots = appliedTaxes[year - 1] || 0;
 
-    // 3. Micro-BIC (50% abatement)
-    const resultatFiscalMicro = Math.max(0, recetteAnnuelle * 0.5);
-    const impotsMicro = resultatFiscalMicro * ((d.tmi + 17.2) / 100);
-
-    const impots = Math.min(impotsReel, impotsMicro);
-    const bestRegime = impotsReel < impotsMicro ? 'reel' : 'micro';
-
-    // Cashflow Net Net for this specific year
     const cfNetNetYear = beneficeAn - impots;
-
-    // Net Worth (Asset Value - Debt + Cash Accumulation)
-    // Simple appreciation model: 1% / year
     const assetValue = (d.prixAchat + d.travaux) * Math.pow(1.01, year);
-    const cumCashflow = beneficeAn * year; // Simplified cumulative without tax reinvestment for now
+    const cumCashflow = beneficeAn * year; // Simplified
     const netWorth = assetValue - remainingDebt + cumCashflow;
 
     projectionData.push({
@@ -302,22 +421,22 @@ export const calculateResults = (d) => {
       interests,
       amortTotal,
       impots,
-      impotsReel,
-      impotsMicro,
-      bestRegime,
+      bestRegime: actualRegime,
+      optimalRegime,
       cfNetNetYear,
       netWorth,
       cumCashflow
     });
   }
 
-  // Averages for KPI display (Year 1)
   const firstYear = projectionData[0] || {};
   const impotsFirstYear = firstYear.impots || 0;
   const cashflowNetNet = cashflowM - (impotsFirstYear / 12);
-  const bestRegime = firstYear.bestRegime || 'micro';
-  const impotsReel = firstYear.impotsReel || 0;
-  const impotsMicro = firstYear.impotsMicro || 0;
+  const bestRegime = firstYear.optimalRegime || optimalRegime;
+  const appliedRegime = firstYear.bestRegime || actualRegime;
+  const impotsReel = 0; // Legacy compat
+  const impotsMicro = 0; // Legacy compat
+
 
   // Bankability Check
   const bankability = calculateBankability(d.revenusFoyer, d.chargesFoyer, recetteMensuelleRéelle, mCredit);
@@ -326,12 +445,11 @@ export const calculateResults = (d) => {
     investTotal, loanAmount, recetteMensuelleBrute, recetteAnnuelle, totalChargesAnnuelles,
     creditAnnee, rBrute, rNet, beneficeAn, cashflowM, mCredit,
     recetteMensuelleRéelle,
-    // New specific outputs
     projectionData,
     cashflowNetNet,
     bankability,
-    // Preserving old structure for compatibility where needed, but favoring projectionData
     bestRegime,
+    appliedRegime,
     impots: impotsFirstYear,
     impotsReel,
     impotsMicro,

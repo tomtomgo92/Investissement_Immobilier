@@ -55,6 +55,9 @@ const validateSimulation = (sim) => {
   // nbColocs is often tied to loyers length, but let's check it reasonably
   if (typeof d.nbColocs === 'number' && d.nbColocs > MAX_ARRAY_LENGTH) return false;
 
+  if (d.typeLocation && typeof d.typeLocation !== 'string') return false;
+  if (d.regimeFiscal && typeof d.regimeFiscal !== 'string') return false;
+
 
   // Deep validation - now safe(r) because arrays are capped
   if (!d.loyers.every(v => typeof v === 'number' && Number.isFinite(v) && v <= MAX_VALUE && v >= MIN_VALUE)) return false;

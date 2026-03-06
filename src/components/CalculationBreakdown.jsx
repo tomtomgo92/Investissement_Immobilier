@@ -1,11 +1,12 @@
 import React from 'react';
 import { Calculator, ArrowRight, Info } from 'lucide-react';
+import { REGIME_LABELS } from '../utils/finance.js';
 
 export default function CalculationBreakdown({ data, calculations, formatE }) {
     const {
         recetteMensuelleBrute, vacanceLocative, recetteMensuelleRéelle,
         totalChargesAnnuelles, mCredit, impots, cashflowNetNet,
-        bestRegime, impotsReel, impotsMicro
+        bestRegime, appliedRegime
     } = { ...data, ...calculations };
 
     return (
@@ -55,26 +56,22 @@ export default function CalculationBreakdown({ data, calculations, formatE }) {
                     </div>
                 </div>
 
-                {/* Fiscalité Intelligente */}
+                {/* Fiscalité */}
                 <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                        <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Fiscalité Optimale</h4>
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${bestRegime === 'reel' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300'}`}>
-                            {bestRegime === 'reel' ? 'Réel' : 'Micro-BIC'}
+                        <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Régime Fiscal</h4>
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${appliedRegime === bestRegime ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300'}`}>
+                            {REGIME_LABELS[appliedRegime] || appliedRegime}
                         </span>
                     </div>
                     <div className="space-y-2">
-                        <div className="flex justify-between text-xs opacity-50">
-                            <span className="text-slate-500">{bestRegime === 'reel' ? 'Option Micro-BIC' : 'Option Réel'}</span>
-                            <span className="font-bold text-slate-500 line-through">-{formatE(Math.max(impotsReel, impotsMicro) / 12)}</span>
+                        <div className="flex justify-between text-xs">
+                            <span className="text-slate-500">Impôt Annuel ({REGIME_LABELS[appliedRegime] || appliedRegime})</span>
+                            <span className="font-bold text-danger">-{formatE(impots)}</span>
                         </div>
                         <div className="flex justify-between text-xs">
-                            <span className="text-slate-500">Impôt Retenu</span>
+                            <span className="text-slate-500">Impôt Mensuel</span>
                             <span className="font-bold text-danger">-{formatE(impots / 12)}</span>
-                        </div>
-                        <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between text-xs font-bold">
-                            <span className="text-success uppercase text-[9px]">Économie / an</span>
-                            <span className="text-success">+{formatE(Math.abs(impotsReel - impotsMicro))}</span>
                         </div>
                     </div>
                 </div>
@@ -89,7 +86,7 @@ export default function CalculationBreakdown({ data, calculations, formatE }) {
                         </div>
                     </div>
                     <div className="text-[9px] text-slate-400 italic">
-                        Soit {formatE(cashflowNetNet * 12)} / an dans votre poche après TOUT (Régime {bestRegime === 'reel' ? 'Réel' : 'Micro'}).
+                        Soit {formatE(cashflowNetNet * 12)} / an dans votre poche après TOUT.
                     </div>
                 </div>
 
@@ -97,7 +94,12 @@ export default function CalculationBreakdown({ data, calculations, formatE }) {
 
             <div className="flex items-center gap-2 text-[10px] text-slate-400 bg-white dark:bg-slate-900/50 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
                 <Info size={12} className="text-accent shrink-0" />
-                <p>Le simulateur a automatiquement choisi le régime <strong className="text-primary dark:text-white uppercase">{bestRegime === 'reel' ? 'Réel Simplifié' : 'Micro-BIC'}</strong> car il vous fait économiser <strong className="text-success">{formatE(Math.abs(impotsReel - impotsMicro))}</strong> d'impôts par an par rapport à l'autre option.</p>
+                <p>
+                    {appliedRegime === bestRegime
+                       ? <span>Le simulateur recommande le régime <strong className="text-primary dark:text-white uppercase">{REGIME_LABELS[bestRegime] || bestRegime}</strong> car c'est le plus optimisé fiscalement pour votre situation (rendement net le plus élevé).</span>
+                       : <span>Vous avez forcé l'utilisation du régime <strong className="text-primary dark:text-white uppercase">{REGIME_LABELS[appliedRegime] || appliedRegime}</strong>. Le régime recommandé par le simulateur serait <strong className="text-success uppercase">{REGIME_LABELS[bestRegime] || bestRegime}</strong>.</span>
+                    }
+                </p>
             </div>
         </div>
     );
