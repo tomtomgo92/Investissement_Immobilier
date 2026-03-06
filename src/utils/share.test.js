@@ -17,6 +17,8 @@ describe('share utils', () => {
       mensualiteCredit: 500,
       vacanceLocative: 5,
       tmi: 30,
+      typeLocation: 'meuble_long',
+      regimeFiscal: 'auto',
       charges: [{ id: '1', name: 'Charge', value: 100 }],
       loyers: [500, 500]
     }

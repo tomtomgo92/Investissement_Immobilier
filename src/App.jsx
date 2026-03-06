@@ -13,7 +13,7 @@ import { Line, Doughnut } from 'react-chartjs-2';
 
 // Utilities
 import {
-  INITIAL_DATA, INITIAL_CHARGES, TMI_OPTIONS,
+  INITIAL_DATA, INITIAL_CHARGES, TMI_OPTIONS, REGIME_LABELS, TYPE_LOCATION_LABELS,
   calculateResults, updateSimulationData, autoEstimateCharges
 } from './utils/finance';
 import { Wand2, DownloadCloud, Loader2, MapPin, AlertTriangle } from 'lucide-react';
@@ -236,7 +236,6 @@ export default function App() {
     navigator.clipboard.writeText(url).then(() => alert('Lien copié dans le presse-papier !'));
   };
 
-  // eslint-disable-next-line no-unused-vars
   const shareBankerSimulation = () => {
     const encoded = encodeShareCode(activeSim, true);
     const url = `${window.location.origin}${window.location.pathname}#banker=${encoded}`;
@@ -521,6 +520,48 @@ export default function App() {
                 <DashboardSection title="Fiscalité & Taxes" icon={<Scale size={18} className="text-rose-500" />}>
                   <div className="flex flex-col gap-3">
                     <div className="flex justify-between items-center px-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-tight">Type de Location</label>
+                    </div>
+                    <select
+                      value={activeSim.data.typeLocation || 'meuble_long'}
+                      onChange={(e) => updateData('typeLocation', e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-bold text-slate-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                    >
+                      {Object.entries(TYPE_LOCATION_LABELS).map(([k, v]) => (
+                        <option key={k} value={k}>{v}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col gap-3 mt-4">
+                    <div className="flex justify-between items-center px-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-tight">Régime Fiscal</label>
+                    </div>
+                    <select
+                      value={activeSim.data.regimeFiscal || 'auto'}
+                      onChange={(e) => updateData('regimeFiscal', e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-bold text-slate-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                    >
+                      {Object.entries(REGIME_LABELS).map(([k, v]) => {
+                         const typeLoc = activeSim.data.typeLocation || 'meuble_long';
+                         let isValid = true;
+                         if (k !== 'auto') {
+                             if (typeLoc === 'nue') {
+                                isValid = ['micro_foncier', 'foncier_reel', 'sci_ir', 'sci_is'].includes(k);
+                                if (calculations.recetteAnnuelle > 15000 && k === 'micro_foncier') isValid = false;
+                             } else {
+                                isValid = ['micro_bic', 'bic_reel', 'sci_is'].includes(k);
+                                const limit = (typeLoc === 'courte_duree') ? 15000 : 77700;
+                                if (calculations.recetteAnnuelle > limit && k === 'micro_bic') isValid = false;
+                             }
+                         }
+                         return isValid ? <option key={k} value={k}>{v}</option> : null;
+                      })}
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col gap-3 mt-4">
+                    <div className="flex justify-between items-center px-1">
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-tight">Tranche TMI</label>
                       <InfoTooltip text="Votre tranche marginale d'imposition (0, 11, 30, 41, 45%)" />
                     </div>
@@ -529,14 +570,16 @@ export default function App() {
                         <button
                           key={t}
                           onClick={() => updateData('tmi', t)}
-                          className={`flex-1 py-2 rounded-md text-[10px] font-bold transition-all ${activeSim.data.tmi === t ? 'bg-white dark:bg-slate-700 text-primary dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                          className={`flex-1 py-2 rounded-md text-[10px] font-bold transition-all ${activeSim.data.tmi === t ? 'bg-white dark:bg-slate-700 text-primary dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
                         >
                           {t}%
                         </button>
                       ))}
                     </div>
                   </div>
-                  <PremiumInput label="Vacance Locative" value={activeSim.data.vacanceLocative} onChange={(v) => updateData('vacanceLocative', v)} suffix="%" />
+                  <div className="mt-4">
+                    <PremiumInput label="Vacance Locative" value={activeSim.data.vacanceLocative} onChange={(v) => updateData('vacanceLocative', v)} suffix="%" />
+                  </div>
                 </DashboardSection>
 
                 <DashboardSection
