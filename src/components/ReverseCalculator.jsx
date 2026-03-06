@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Target, TrendingUp, Handshake, AlertCircle } from 'lucide-react';
 import DashboardSection from './GlassSection';
 import PremiumInput from './PremiumInput';
@@ -8,8 +8,8 @@ import { formatE } from '../utils/formatters';
 export default function ReverseCalculator({ data, onApplyMaxPrice, onApplyMinRent }) {
   const [targetCashflow, setTargetCashflow] = useState(0);
 
-  // Helper to deep copy and recalculate
-  const evaluateCashflow = (simData) => {
+  // ⚡ Bolt Optimization: Wrap helper in useCallback to prevent recreation on every render.
+  const evaluateCashflow = useCallback((simData) => {
     // Re-calculate derived data (like notary fees) if needed by the app logic
     if (simData.prixAchat !== data.prixAchat) {
        simData.fraisNotaire = Math.round(simData.prixAchat * 0.08);
@@ -17,11 +17,14 @@ export default function ReverseCalculator({ data, onApplyMaxPrice, onApplyMinRen
 
     const results = calculateResults(simData);
     return results.cashflowNetNet; // Our main target metric
-  };
+  }, [data.prixAchat]);
 
-  const calculateMaxPurchasePrice = () => {
+  // ⚡ Bolt Optimization: Memoize the max purchase price calculation.
+  // Impact: Prevents executing the 50-iteration binary search on superficial re-renders
+  // (e.g., when other unrelated inputs or states in the parent change).
+  const maxPrice = useMemo(() => {
     let minPrice = 1000;
-    let maxPrice = 5000000; // 5M max
+    let maxPriceLimit = 5000000; // 5M max
     let bestPrice = null;
     let tolerance = 1; // 1 euro tolerance
 
@@ -40,7 +43,7 @@ export default function ReverseCalculator({ data, onApplyMaxPrice, onApplyMinRen
 
     // Binary search
     for (let i = 0; i < 50; i++) {
-      let midPrice = (minPrice + maxPrice) / 2;
+      let midPrice = (minPrice + maxPriceLimit) / 2;
       testSim.prixAchat = midPrice;
 
       const cf = evaluateCashflow(testSim);
@@ -55,15 +58,17 @@ export default function ReverseCalculator({ data, onApplyMaxPrice, onApplyMinRen
         minPrice = midPrice;
       } else {
         // If CF is lower than target, we need a lower purchase price
-        maxPrice = midPrice;
+        maxPriceLimit = midPrice;
       }
       bestPrice = midPrice;
     }
     return bestPrice ? Math.floor(bestPrice) : null;
-  };
+  }, [data, targetCashflow, evaluateCashflow]);
 
-  const calculateMinRents = () => {
-     let minRent = 0;
+  // ⚡ Bolt Optimization: Memoize the min rents calculation.
+  // Impact: Prevents executing the 50-iteration binary search on superficial re-renders.
+  const minRent = useMemo(() => {
+     let minRentLimit = 0;
      let maxRent = 10000; // 10k per roommate max
      let bestRent = null;
      let tolerance = 1; // 1 euro tolerance
@@ -74,7 +79,7 @@ export default function ReverseCalculator({ data, onApplyMaxPrice, onApplyMinRen
 
      // Binary search
      for (let i = 0; i < 50; i++) {
-        let midRent = (minRent + maxRent) / 2;
+        let midRent = (minRentLimit + maxRent) / 2;
         testSim.loyers = data.loyers.map(() => midRent);
 
         const cf = evaluateCashflow(testSim);
@@ -85,17 +90,14 @@ export default function ReverseCalculator({ data, onApplyMaxPrice, onApplyMinRen
         }
 
         if (cf < targetCashflow) {
-           minRent = midRent;
+           minRentLimit = midRent;
         } else {
            maxRent = midRent;
         }
         bestRent = midRent;
      }
      return bestRent ? Math.ceil(bestRent) : null;
-  };
-
-  const maxPrice = calculateMaxPurchasePrice();
-  const minRent = calculateMinRents();
+  }, [data, targetCashflow, evaluateCashflow]);
 
   return (
     <DashboardSection title="Négociation & Objectif" icon={<Target size={18} className="text-emerald-500" />}>
