@@ -16,10 +16,11 @@ import {
   INITIAL_DATA, INITIAL_CHARGES, TMI_OPTIONS,
   calculateResults, updateSimulationData, autoEstimateCharges
 } from './utils/finance';
-import { Wand2, DownloadCloud, Loader2 } from 'lucide-react';
+import { Wand2, DownloadCloud, Loader2, MapPin, AlertTriangle } from 'lucide-react';
 import { scrapeUrl } from './utils/scraping';
 import { encodeShareCode, decodeShareCode } from './utils/share';
 import { formatE } from './utils/formatters';
+import { getMarketData } from './utils/market';
 
 // Components
 import DashboardSection from './components/GlassSection';
@@ -91,10 +92,28 @@ export default function App() {
   const [importUrl, setImportUrl] = useState('');
   const [isImporting, setIsImporting] = useState(false);
 
+  // Market Intelligence state
+  const [marketData, setMarketData] = useState(null);
+  const [, setIsFetchingMarketData] = useState(false);
+
   // Auto-Save Effect
   useEffect(() => {
     localStorage.setItem('invest_simulations', JSON.stringify(simulations));
   }, [simulations]);
+
+  // Market Data Fetching Effect
+  const activeSimPostalCode = simulations.find(s => s.id === activeSimId)?.data?.codePostal;
+  useEffect(() => {
+    if (activeSimPostalCode) {
+      setIsFetchingMarketData(true);
+      getMarketData(activeSimPostalCode).then((data) => {
+        setMarketData(data);
+        setIsFetchingMarketData(false);
+      });
+    } else {
+      setMarketData(null);
+    }
+  }, [activeSimPostalCode]);
 
   // Dark Mode Toggle Effect
   useEffect(() => {
@@ -236,7 +255,12 @@ export default function App() {
       setSimulations(p => p.map(s => {
         if (s.id !== activeSimId) return s;
 
-        let newData = { ...s.data, prixAchat: data.prixAchat };
+        let newData = {
+          ...s.data,
+          prixAchat: data.prixAchat,
+          surface: data.surface || s.data.surface,
+          codePostal: data.codePostal || s.data.codePostal
+        };
         // Estimate charges based on new price and current rents
         const loyerMensuelTotal = s.data.loyers.reduce((acc, val) => acc + val, 0);
         newData.charges = autoEstimateCharges(data.prixAchat, loyerMensuelTotal);
@@ -377,6 +401,14 @@ export default function App() {
                 <PremiumInput label="Taux %" value={activeSim.data.tauxInteret} onChange={(v) => updateData('tauxInteret', v)} suffix="%" />
                 <PremiumInput label="Durée" value={activeSim.data.dureeCredit} onChange={(v) => updateData('dureeCredit', v)} suffix="Ans" />
               </div>
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={shareBankerSimulation}
+                  className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold uppercase tracking-widest shadow-sm transition-colors"
+                >
+                  <Share2 size={16} /> Copier mon offre modifiée
+                </button>
+              </div>
             </DashboardSection>
 
             <DashboardSection title="Détails du Projet (Lecture Seule)" icon={<Home size={18} className="text-accent" />}>
@@ -444,6 +476,8 @@ export default function App() {
 
               <div className="space-y-8">
                 <DashboardSection title="Patrimoine" icon={<Home size={18} className="text-accent" />}>
+                  <PremiumInput label="Code Postal" value={activeSim.data.codePostal} onChange={(v) => updateData('codePostal', v)} suffix="" />
+                  <PremiumInput label="Surface" value={activeSim.data.surface} onChange={(v) => updateData('surface', v)} suffix="m²" />
                   <PremiumInput label="Prix d'achat" value={activeSim.data.prixAchat} onChange={(v) => updateData('prixAchat', v)} tooltip="Prix hors frais d'agence" />
                   <PremiumInput label="Travaux" value={activeSim.data.travaux} onChange={(v) => updateData('travaux', v)} tooltip="Rénovation et ameublement" />
                   <PremiumInput label="Frais Notaire" value={activeSim.data.fraisNotaire} onChange={(v) => updateData('fraisNotaire', v)} tooltip="Estimation automatique à 8%" />
@@ -597,6 +631,26 @@ export default function App() {
                         <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{formatE(calculations.recetteAnnuelle)} / an</span>
                       </div>
                     </div>
+
+                    {marketData && activeSim.data.surface > 0 && (() => {
+                      const rentPerSqm = calculations.recetteMensuelleBrute / activeSim.data.surface;
+                      const isHigh = rentPerSqm > marketData.avgRentPerSqm * 1.15;
+                      const isLow = rentPerSqm < marketData.avgRentPerSqm * 0.85;
+
+                      return (
+                        <div className={`mt-4 p-3 rounded-xl border flex items-start gap-3 text-xs ${isHigh ? 'bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-200' : isLow ? 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-200' : 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-200'}`}>
+                          <div className="mt-0.5"><MapPin size={14} /></div>
+                          <div>
+                            <p className="font-bold">Benchmarking Local ({marketData.marketName})</p>
+                            <p className="mt-1 opacity-90">Loyer marché moy: <span className="font-bold">{marketData.avgRentPerSqm}€/m²</span></p>
+                            <p className="opacity-90">Votre estimation: <span className="font-bold">{rentPerSqm.toFixed(1)}€/m²</span></p>
+                            {isHigh && <p className="mt-2 font-bold flex items-center gap-1"><AlertTriangle size={12} /> Loyer visé très optimiste par rapport au marché.</p>}
+                            {isLow && <p className="mt-2 font-bold flex items-center gap-1"><AlertTriangle size={12} /> Loyer visé sous-évalué, potentiel d'optimisation.</p>}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
                   </div>
                 </DashboardSection>
               </div>

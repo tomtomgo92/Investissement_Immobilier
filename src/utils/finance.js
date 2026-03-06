@@ -12,6 +12,7 @@ export const INITIAL_CHARGES = [
 export const INITIAL_DATA = {
   // Property & Loan
   prixAchat: 92000, travaux: 20000, fraisNotaire: 7360, apport: 15000,
+  surface: 60, codePostal: '69003',
   tauxInteret: 3.85, dureeCredit: 20, mensualiteCredit: 567,
   autoCredit: true,
 
