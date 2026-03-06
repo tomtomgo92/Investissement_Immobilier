@@ -1,0 +1,3 @@
+## 2024-10-24 - Project Navigation Missing Tab Roles
+**Learning:** In React apps where multiple projects or items are displayed as a horizontal list of buttons acting like tabs (e.g., the simulation switcher in `src/App.jsx`), they often lack the correct ARIA roles for screen readers. Using just `<nav>` and `<button>` doesn't convey that only one item is active at a time.
+**Action:** When building or encountering custom tab-like navigation bars, always wrap the container in `role="tablist"` (with an `aria-label`), and add `role="tab"` with `aria-selected={isActive}` to the individual buttons. Also ensure explicit `focus-visible` styles are set for keyboard navigation.

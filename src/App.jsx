@@ -299,12 +299,14 @@ export default function App() {
             />
           </div>
 
-          <nav className="hidden md:flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+          <nav role="tablist" aria-label="Projets" className="hidden md:flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
             {simulations.map(sim => (
               <button
                 key={sim.id}
+                role="tab"
+                aria-selected={activeSimId === sim.id}
                 onClick={() => setActiveSimId(sim.id)}
-                className={`px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${activeSimId === sim.id ? 'bg-white dark:bg-slate-700 text-primary dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                className={`px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-800 ${activeSimId === sim.id ? 'bg-white dark:bg-slate-700 text-primary dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
               >
                 {sim.name}
               </button>
