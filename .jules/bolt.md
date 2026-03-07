@@ -7,3 +7,6 @@
 ## 2025-03-05 - Avoid Full Projections for UI Summaries
 **Learning:** Rendering lists of simulation cards (like in `DealPipeline.jsx`) causes severe UI lag if each card independently runs the full `calculateResults` method, which computes a 20-year array projection and iterations of tax optimization. The bottleneck isn't the individual calculation, but multiplying it by 10s or 100s of cards on a single render when only 3 base metrics are shown.
 **Action:** When displaying lists of complex domain entities, create a specialized summary calculation method (e.g. `calculatePipelineMetrics`) that bypasses the deep projections and only computes the exact fields required by the UI list.
+## 2025-05-14 - Unnecessary Recalculations of Heavy UI Logic
+**Learning:** In `ReverseCalculator.jsx`, expensive binary search algorithms were running on every single render cycle. Because they were missing `useMemo`, any trivial UI update (such as typing in an unrelated input or toggling dark mode) caused these heavy operations to re-run and block the main thread.
+**Action:** Aggressively wrap complex calculation blocks (like mathematical binary searches or multi-iteration projections) in `useMemo`, and wrap any dependent helper functions in `useCallback`. This prevents performance regressions when application state changes.
