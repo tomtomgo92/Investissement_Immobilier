@@ -62,8 +62,13 @@ const validateSimulation = (sim) => {
   // Deep validation - now safe(r) because arrays are capped
   if (!d.loyers.every(v => typeof v === 'number' && Number.isFinite(v) && v <= MAX_VALUE && v >= MIN_VALUE)) return false;
 
-  // Charges must have a numeric value to prevent calculation errors
-  if (!d.charges.every(c => c && typeof c === 'object' && typeof c.value === 'number' && Number.isFinite(c.value) && c.value <= MAX_VALUE && c.value >= MIN_VALUE)) return false;
+  // Charges must have a numeric value to prevent calculation errors and string lengths capped to prevent DoS
+  if (!d.charges.every(c =>
+    c && typeof c === 'object' &&
+    typeof c.value === 'number' && Number.isFinite(c.value) && c.value <= MAX_VALUE && c.value >= MIN_VALUE &&
+    typeof c.id === 'string' && c.id.length <= MAX_NAME_LENGTH &&
+    typeof c.name === 'string' && c.name.length <= MAX_NAME_LENGTH
+  )) return false;
 
   return true;
 };
