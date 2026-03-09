@@ -299,12 +299,14 @@ export default function App() {
             />
           </div>
 
-          <nav className="hidden md:flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+          <nav className="hidden md:flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg" role="tablist" aria-label="Projets de simulation">
             {simulations.map(sim => (
               <button
                 key={sim.id}
+                role="tab"
+                aria-selected={activeSimId === sim.id}
                 onClick={() => setActiveSimId(sim.id)}
-                className={`px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${activeSimId === sim.id ? 'bg-white dark:bg-slate-700 text-primary dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                className={`px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-800 ${activeSimId === sim.id ? 'bg-white dark:bg-slate-700 text-primary dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
               >
                 {sim.name}
               </button>
@@ -331,27 +333,30 @@ export default function App() {
         <div className="flex items-center gap-3">
           <button
             aria-label="Activer le mode sombre/clair"
+            aria-pressed={isDarkMode}
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className="p-2 text-slate-400 hover:text-primary dark:hover:text-white transition-colors"
+            className="p-2 text-slate-400 hover:text-primary dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-md"
           >
             {isDarkMode ? <Eye size={18} /> : <EyeOff size={18} />}
           </button>
           <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 mx-1" />
           <button
+            aria-pressed={viewMode === 'pipeline'}
             onClick={() => setViewMode(viewMode === 'pipeline' ? 'dashboard' : 'pipeline')}
-            className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'pipeline' ? 'bg-indigo-50 border-indigo-200 text-indigo-600 dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-300' : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+            className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-900 ${viewMode === 'pipeline' ? 'bg-indigo-50 border-indigo-200 text-indigo-600 dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-300' : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
           >
             <BarChart3 size={14} /> Pipeline
           </button>
           <button
+            aria-pressed={viewMode === 'comparator'}
             onClick={() => setViewMode(viewMode === 'comparator' ? 'dashboard' : 'comparator')}
-            className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'comparator' ? 'bg-indigo-50 border-indigo-200 text-indigo-600 dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-300' : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+            className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-900 ${viewMode === 'comparator' ? 'bg-indigo-50 border-indigo-200 text-indigo-600 dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-300' : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
           >
             <Scale size={14} /> Comparer
           </button>
           <button
             onClick={shareSimulation}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-lg text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-lg text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-900"
           >
             <Share2 size={14} /> Partager
           </button>
