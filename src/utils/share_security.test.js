@@ -33,6 +33,14 @@ describe('share utils - security boundaries', () => {
     assert.strictEqual(decoded, null);
   });
 
+  it('should reject extremely long nested strings in charges (DoS risk)', () => {
+    const invalid = JSON.parse(JSON.stringify(validData));
+    invalid.data.charges = [{ id: '1', name: 'A'.repeat(100000), value: 100 }];
+    const encoded = encodeShareCode(invalid);
+    const decoded = decodeShareCode(encoded);
+    assert.strictEqual(decoded, null);
+  });
+
   it('should reject extremely large number of charges (DoS/Memory)', () => {
     const invalid = JSON.parse(JSON.stringify(validData));
     // Create a sparse array of length 10001
