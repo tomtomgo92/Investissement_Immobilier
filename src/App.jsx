@@ -612,7 +612,7 @@ export default function App() {
                               onChange={(e) => updateCharge(c.id, 'value', e.target.value)}
                               className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-white pr-8"
                             />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 leading-none">€</span>
+                            <span aria-hidden="true" className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 leading-none pointer-events-none">€</span>
                           </div>
                           <button aria-label={`Supprimer la charge ${c.name}`} onClick={() => removeCharge(c.id)} className="opacity-0 group-hover:opacity-100 text-danger hover:text-red-600 transition-opacity">
                             <Trash2 size={14} />
@@ -659,7 +659,7 @@ export default function App() {
                             }}
                             className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm font-bold text-primary dark:text-white"
                           />
-                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-medium">€</span>
+                          <span aria-hidden="true" className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-medium pointer-events-none">€</span>
                         </div>
                       </div>
                     ))}
