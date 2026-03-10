@@ -299,12 +299,14 @@ export default function App() {
             />
           </div>
 
-          <nav className="hidden md:flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+          <nav role="tablist" aria-label="Projets de simulation" className="hidden md:flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
             {simulations.map(sim => (
               <button
                 key={sim.id}
+                role="tab"
+                aria-selected={activeSimId === sim.id}
                 onClick={() => setActiveSimId(sim.id)}
-                className={`px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${activeSimId === sim.id ? 'bg-white dark:bg-slate-700 text-primary dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                className={`px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-800 ${activeSimId === sim.id ? 'bg-white dark:bg-slate-700 text-primary dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
               >
                 {sim.name}
               </button>
@@ -321,7 +323,7 @@ export default function App() {
                 setSimulations([...simulations, n]);
                 setActiveSimId(n.id);
               }}
-              className="px-2 text-accent"
+              className="px-2 text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-800 rounded-md"
             >
               <Plus size={16} />
             </button>
@@ -562,15 +564,17 @@ export default function App() {
 
                   <div className="flex flex-col gap-3 mt-4">
                     <div className="flex justify-between items-center px-1">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-tight">Tranche TMI</label>
+                      <label id="tmi-label" className="text-xs font-bold text-slate-500 uppercase tracking-tight">Tranche TMI</label>
                       <InfoTooltip text="Votre tranche marginale d'imposition (0, 11, 30, 41, 45%)" />
                     </div>
-                    <div className="flex bg-slate-50 dark:bg-slate-800 p-1 rounded-lg gap-1">
+                    <div role="tablist" aria-labelledby="tmi-label" className="flex bg-slate-50 dark:bg-slate-800 p-1 rounded-lg gap-1">
                       {TMI_OPTIONS.map(t => (
                         <button
                           key={t}
+                          role="tab"
+                          aria-selected={activeSim.data.tmi === t}
                           onClick={() => updateData('tmi', t)}
-                          className={`flex-1 py-2 rounded-md text-[10px] font-bold transition-all ${activeSim.data.tmi === t ? 'bg-white dark:bg-slate-700 text-primary dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                          className={`flex-1 py-2 rounded-md text-[10px] font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-800 ${activeSim.data.tmi === t ? 'bg-white dark:bg-slate-700 text-primary dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
                         >
                           {t}%
                         </button>
