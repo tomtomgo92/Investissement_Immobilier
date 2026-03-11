@@ -9,7 +9,7 @@ export const encodeShareCode = (simulation, isBanker = false) => {
   return btoa(encoded);
 };
 
-const validateSimulation = (sim) => {
+export const validateSimulation = (sim) => {
   if (!sim || typeof sim !== 'object') return false;
 
   // Basic structure
@@ -75,8 +75,19 @@ const validateSimulation = (sim) => {
 
 export const decodeShareCode = (encoded) => {
   try {
+    // Basic validation of the encoded string to prevent DOMException in atob
+    if (typeof encoded !== 'string') {
+      return null;
+    }
+
     // Decode from base64 first
-    let jsonString = atob(encoded);
+    let jsonString;
+    try {
+      jsonString = atob(encoded);
+    } catch {
+      console.error("Failed to base64 decode share code");
+      return null;
+    }
 
     // Attempt to decode assuming it was encoded with encodeURIComponent -> btoa
     // Only if it looks like URI encoded JSON (%7B is '{')
@@ -88,7 +99,13 @@ export const decodeShareCode = (encoded) => {
       }
     }
 
-    const result = JSON.parse(jsonString);
+    let result;
+    try {
+      result = JSON.parse(jsonString);
+    } catch {
+      console.error("Failed to parse JSON from share code");
+      return null;
+    }
 
     if (validateSimulation(result)) {
       return result;
@@ -96,8 +113,8 @@ export const decodeShareCode = (encoded) => {
 
     console.error("Invalid simulation data structure - validation failed");
     return null;
-  } catch (e) {
-    console.error("Failed to decode share code", e);
+  } catch {
+    console.error("Failed to decode share code");
     return null;
   }
 };
