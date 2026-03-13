@@ -74,30 +74,39 @@ const validateSimulation = (sim) => {
 };
 
 export const decodeShareCode = (encoded) => {
+  // SECURITY ENHANCEMENT: Prevent stack trace leakage by not logging raw Error objects
+  // and encapsulating risky parsing operations in distinct try...catch blocks.
+  let jsonString;
   try {
     // Decode from base64 first
-    let jsonString = atob(encoded);
-
-    // Attempt to decode assuming it was encoded with encodeURIComponent -> btoa
-    // Only if it looks like URI encoded JSON (%7B is '{')
-    if (jsonString.startsWith('%7B')) {
-      try {
-        jsonString = decodeURIComponent(jsonString);
-      } catch {
-        // If it fails, fallback to keeping jsonString as is
-      }
-    }
-
-    const result = JSON.parse(jsonString);
-
-    if (validateSimulation(result)) {
-      return result;
-    }
-
-    console.error("Invalid simulation data structure - validation failed");
-    return null;
-  } catch (e) {
-    console.error("Failed to decode share code", e);
+    jsonString = atob(encoded);
+  } catch {
+    console.error("Failed to decode share code: Invalid base64 encoding");
     return null;
   }
+
+  // Attempt to decode assuming it was encoded with encodeURIComponent -> btoa
+  // Only if it looks like URI encoded JSON (%7B is '{')
+  if (jsonString.startsWith('%7B')) {
+    try {
+      jsonString = decodeURIComponent(jsonString);
+    } catch {
+      // If it fails, fallback to keeping jsonString as is
+    }
+  }
+
+  let result;
+  try {
+    result = JSON.parse(jsonString);
+  } catch {
+    console.error("Failed to decode share code: Invalid JSON structure");
+    return null;
+  }
+
+  if (validateSimulation(result)) {
+    return result;
+  }
+
+  console.error("Invalid simulation data structure - validation failed");
+  return null;
 };
