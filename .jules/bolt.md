@@ -10,3 +10,7 @@
 ## 2025-03-09 - Unmemoized Heavy Loops inside React Components
 **Learning:** Unmemoized heavy calculations (like binary searches running 50 iterations of `calculateResults`) inside React components cause severe main-thread blocking during superficial parent renders. The `ReverseCalculator` component was recalculating the max purchase price and min rents on every single re-render of the parent component, even when none of the related properties changed (e.g. toggling visibility or switching tabs).
 **Action:** Always wrap expensive derivation blocks (like large or nested loops with high computational cost) in `useMemo` with strict dependency arrays to ensure they only run when their base inputs change. Sub-methods called within the memo should be wrapped in `useCallback`.
+
+## 2025-02-28 - DealPipeline Re-render Optimization
+**Learning:** Rendering a list of complex entities (like DealPipeline simulations) where each triggers a heavy financial recalculation causes severe O(N) rendering bottlenecks. In `DealPipeline.jsx`, modifying the state of a single `sim` forces all simulations to recalculate their metrics.
+**Action:** Extract list items into individual `React.memo` components (`DealCard`) and localize computationally expensive calls (`calculatePipelineMetrics`) within them using `useMemo(..., [sim.data])`. Wrap parent callbacks in `useCallback` to maintain stable reference props for the memoized child.
