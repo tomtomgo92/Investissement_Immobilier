@@ -7,3 +7,7 @@
 ## 2024-05-24 - Input Adornments Blocking Clicks
 **Learning:** Absolute positioned visual adornments inside inputs (like the '€' suffix in App.jsx) intercept mouse clicks, preventing users from focusing the input if they click exactly on the symbol. They also add unnecessary noise for screen readers.
 **Action:** Always add `pointer-events-none` and `aria-hidden="true"` to purely visual, absolute-positioned input adornments across the design system.
+
+## 2024-05-25 - Tooltip Keyboard Accessibility
+**Learning:** Tooltips triggered purely by hover (e.g., `InfoTooltip`) are completely inaccessible to keyboard users because raw icons (like `<Info />`) cannot receive focus.
+**Action:** Always wrap tooltip trigger icons in a focusable interactive element (like `<button type="button">`) with explicit `aria-label` or `aria-describedby` and `focus-visible` styling. To make the tooltip visible on keyboard focus, add `group-focus-within:opacity-100` alongside `group-hover:opacity-100`.
