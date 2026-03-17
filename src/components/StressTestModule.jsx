@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { generateStressScenarios, calculateResults } from '../utils/finance';
+import { generateStressScenarios, calculatePipelineMetrics } from '../utils/finance';
 import { ShieldAlert, AlertTriangle, TrendingDown, TrendingUp } from 'lucide-react';
 
 export default function StressTestModule({ data, formatE }) {
@@ -9,11 +9,14 @@ export default function StressTestModule({ data, formatE }) {
     const results = {};
 
     // Calculate results for each scenario
+    // ⚡ Bolt Optimization: Use calculatePipelineMetrics instead of calculateResults
+    // Impact: Avoids generating 20-year arrays and deep tax optimization loops 3x per render
+    // when only the scalar cashflowNetNet metric is needed for the UI.
     Object.keys(rawScenarios).forEach(key => {
       const simData = rawScenarios[key];
       results[key] = {
         name: simData.name,
-        ...calculateResults(simData)
+        ...calculatePipelineMetrics(simData)
       };
     });
 
