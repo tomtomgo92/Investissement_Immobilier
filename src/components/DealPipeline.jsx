@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback, memo } from 'react';
 import { calculatePipelineMetrics } from '../utils/finance';
 import { formatE } from '../utils/formatters';
 import { ArrowLeft, ArrowRight, Wallet, TrendingUp, Search, PhoneCall, Calendar, Send, CheckCircle2, LayoutList, Bell, BellRing } from 'lucide-react';
@@ -11,46 +11,105 @@ const COLUMNS = [
   { id: 'Accepté/Refusé', label: 'Accepté/Refusé', icon: <CheckCircle2 size={14} /> }
 ];
 
+const PipelineCard = memo(function PipelineCard({ sim, hasAlert, colIndex, isLastColumn, toggleAlert, changeStatus, openSimulation }) {
+  // ⚡ Bolt Optimization: Localize expensive calculation inside the memoized list item.
+  // Impact: Prevents O(N) recalculations for all pipeline cards when a single simulation changes.
+  const results = useMemo(() => calculatePipelineMetrics(sim.data), [sim.data]);
+
+  return (
+    <div className="bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow group">
+      <div className="flex justify-between items-start mb-2">
+        <button onClick={() => openSimulation(sim.id)} className="font-bold text-sm text-primary dark:text-white hover:text-accent text-left pr-2">
+          {sim.name}
+        </button>
+        <button
+          onClick={() => toggleAlert(sim.id, sim.name)}
+          title={hasAlert ? "Désactiver l'alerte" : "Créer une alerte de prix"}
+          className={`p-1 rounded-full transition-colors ${hasAlert ? 'text-amber-500 bg-amber-50 dark:bg-amber-900/30' : 'text-slate-300 hover:text-amber-400 dark:text-slate-600 dark:hover:text-amber-500'}`}
+        >
+          {hasAlert ? <BellRing size={14} /> : <Bell size={14} />}
+        </button>
+      </div>
+
+      <div className="space-y-1 mb-3">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-slate-500">Investissement</span>
+          <span className="font-semibold text-slate-700 dark:text-slate-300">{formatE(results.investTotal)}</span>
+        </div>
+        <div className="flex items-center justify-between text-xs">
+          <span className="flex items-center gap-1 text-slate-500"><Wallet size={10} /> Cashflow</span>
+          <span className={`font-bold ${results.cashflowNetNet >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+            {formatE(results.cashflowNetNet)}/m
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-xs">
+          <span className="flex items-center gap-1 text-slate-500"><TrendingUp size={10} /> Renda. Net</span>
+          <span className="font-bold text-indigo-500">{results.rNet.toFixed(2)}%</span>
+        </div>
+      </div>
+
+      {/* Card Actions (Move buttons) */}
+      <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+        <button
+          aria-label="Déplacer à l'étape précédente"
+          onClick={() => changeStatus(sim.id, colIndex, -1)}
+          disabled={colIndex === 0}
+          className="p-1.5 rounded-md text-slate-400 hover:text-accent hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-20 transition-colors"
+        >
+          <ArrowLeft size={14} />
+        </button>
+
+        <button
+          onClick={() => openSimulation(sim.id)}
+          className="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-primary dark:hover:text-white"
+        >
+          Ouvrir
+        </button>
+
+        <button
+          aria-label="Déplacer à l'étape suivante"
+          onClick={() => changeStatus(sim.id, colIndex, 1)}
+          disabled={isLastColumn}
+          className="p-1.5 rounded-md text-slate-400 hover:text-accent hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-20 transition-colors"
+        >
+          <ArrowRight size={14} />
+        </button>
+      </div>
+    </div>
+  );
+});
+
 export default function DealPipeline({ simulations, setSimulations, setActiveSimId, setViewMode }) {
   // Pre-calculate results for each simulation to display key metrics
-  const pipelineData = useMemo(() => {
-    return simulations.map(sim => {
-      const results = calculatePipelineMetrics(sim.data);
-      return {
-        id: sim.id,
-        name: sim.name,
-        status: sim.pipelineStatus || 'À analyser',
-        hasAlert: sim.hasAlert || false,
-        ...results
-      };
-    });
-  }, [simulations]);
+  // ⚡ Bolt Optimization: Use raw simulation data and let PipelineCard handle computation.
 
-  const toggleAlert = (simId) => {
+
+  // ⚡ Bolt Optimization: Wrap callbacks in useCallback to prevent child re-renders.
+  const toggleAlert = useCallback((simId, simName) => {
     setSimulations(prev => prev.map(s => {
       if (s.id === simId) {
         const isEnabling = !s.hasAlert;
         if (isEnabling) {
-          alert(`Alerte activée pour "${s.name}". Vous serez notifié si le prix baisse ou dans 45 jours.`);
+          alert(`Alerte activée pour "${simName}". Vous serez notifié si le prix baisse ou dans 45 jours.`);
         }
         return { ...s, hasAlert: isEnabling };
       }
       return s;
     }));
-  };
+  }, [setSimulations]);
 
-  const changeStatus = (simId, currentIndex, direction) => {
+  const changeStatus = useCallback((simId, currentIndex, direction) => {
     const newIndex = currentIndex + direction;
     if (newIndex >= 0 && newIndex < COLUMNS.length) {
       const newStatus = COLUMNS[newIndex].id;
       setSimulations(prev => prev.map(s => s.id === simId ? { ...s, pipelineStatus: newStatus } : s));
     }
-  };
+  }, [setSimulations]);
 
-  const openSimulation = (id) => {
+  const openSimulation = useCallback((id) => {
     setActiveSimId(id);
     setViewMode('dashboard');
-  };
+  }, [setActiveSimId, setViewMode]);
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -63,7 +122,7 @@ export default function DealPipeline({ simulations, setSimulations, setActiveSim
 
       <div className="flex gap-4 overflow-x-auto pb-4 items-stretch min-h-[500px]">
         {COLUMNS.map((col, colIndex) => {
-          const columnSims = pipelineData.filter(s => s.status === col.id);
+          const columnSims = simulations.filter(s => (s.pipelineStatus || 'À analyser') === col.id);
 
           return (
             <div key={col.id} className="flex-1 min-w-[280px] bg-slate-50/50 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col">
@@ -84,65 +143,17 @@ export default function DealPipeline({ simulations, setSimulations, setActiveSim
                   <div className="text-center text-xs text-slate-400 italic mt-4 opacity-50">Aucun projet</div>
                 ) : (
                   columnSims.map(sim => (
-                    <div key={sim.id} className="bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow group">
-                      <div className="flex justify-between items-start mb-2">
-                        <button onClick={() => openSimulation(sim.id)} className="font-bold text-sm text-primary dark:text-white hover:text-accent text-left pr-2">
-                          {sim.name}
-                        </button>
-                        <button
-                          onClick={() => toggleAlert(sim.id)}
-                          title={sim.hasAlert ? "Désactiver l'alerte" : "Créer une alerte de prix"}
-                          className={`p-1 rounded-full transition-colors ${sim.hasAlert ? 'text-amber-500 bg-amber-50 dark:bg-amber-900/30' : 'text-slate-300 hover:text-amber-400 dark:text-slate-600 dark:hover:text-amber-500'}`}
-                        >
-                          {sim.hasAlert ? <BellRing size={14} /> : <Bell size={14} />}
-                        </button>
-                      </div>
-
-                      <div className="space-y-1 mb-3">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-slate-500">Investissement</span>
-                          <span className="font-semibold text-slate-700 dark:text-slate-300">{formatE(sim.investTotal)}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="flex items-center gap-1 text-slate-500"><Wallet size={10} /> Cashflow</span>
-                          <span className={`font-bold ${sim.cashflowNetNet >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                            {formatE(sim.cashflowNetNet)}/m
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="flex items-center gap-1 text-slate-500"><TrendingUp size={10} /> Renda. Net</span>
-                          <span className="font-bold text-indigo-500">{sim.rNet.toFixed(2)}%</span>
-                        </div>
-                      </div>
-
-                      {/* Card Actions (Move buttons) */}
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
-                        <button
-                          aria-label="Déplacer à l'étape précédente"
-                          onClick={() => changeStatus(sim.id, colIndex, -1)}
-                          disabled={colIndex === 0}
-                          className="p-1.5 rounded-md text-slate-400 hover:text-accent hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-20 transition-colors"
-                        >
-                          <ArrowLeft size={14} />
-                        </button>
-
-                        <button
-                          onClick={() => openSimulation(sim.id)}
-                          className="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-primary dark:hover:text-white"
-                        >
-                          Ouvrir
-                        </button>
-
-                        <button
-                          aria-label="Déplacer à l'étape suivante"
-                          onClick={() => changeStatus(sim.id, colIndex, 1)}
-                          disabled={colIndex === COLUMNS.length - 1}
-                          className="p-1.5 rounded-md text-slate-400 hover:text-accent hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-20 transition-colors"
-                        >
-                          <ArrowRight size={14} />
-                        </button>
-                      </div>
-                    </div>
+                    <PipelineCard
+                      key={sim.id}
+                      sim={sim}
+                      status={sim.pipelineStatus || 'À analyser'}
+                      hasAlert={sim.hasAlert || false}
+                      colIndex={colIndex}
+                      isLastColumn={colIndex === COLUMNS.length - 1}
+                      toggleAlert={toggleAlert}
+                      changeStatus={changeStatus}
+                      openSimulation={openSimulation}
+                    />
                   ))
                 )}
               </div>
