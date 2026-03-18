@@ -7,3 +7,7 @@
 ## 2024-05-24 - Input Adornments Blocking Clicks
 **Learning:** Absolute positioned visual adornments inside inputs (like the '€' suffix in App.jsx) intercept mouse clicks, preventing users from focusing the input if they click exactly on the symbol. They also add unnecessary noise for screen readers.
 **Action:** Always add `pointer-events-none` and `aria-hidden="true"` to purely visual, absolute-positioned input adornments across the design system.
+
+## 2024-05-25 - Keyboard Accessibility for Hidden UI Elements
+**Learning:** Hiding interactive elements (like the delete charge button or tooltips) using `opacity-0` makes them completely inaccessible and undiscoverable for keyboard users tabbing through the UI, as they remain invisible even when focused.
+**Action:** Always add `focus-visible:opacity-100` alongside explicit `focus-visible` ring styling to hidden buttons to ensure they appear when focused. For tooltip components triggered on hover, wrap the trigger in a focusable `<button type="button">` and add `group-focus-within:opacity-100` to the tooltip container to guarantee visibility via keyboard navigation.

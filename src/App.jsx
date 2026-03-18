@@ -618,7 +618,7 @@ export default function App() {
                             />
                             <span aria-hidden="true" className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 leading-none pointer-events-none">€</span>
                           </div>
-                          <button aria-label={`Supprimer la charge ${c.name}`} onClick={() => removeCharge(c.id)} className="opacity-0 group-hover:opacity-100 text-danger hover:text-red-600 transition-opacity">
+                          <button aria-label={`Supprimer la charge ${c.name}`} onClick={() => removeCharge(c.id)} className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 text-danger hover:text-red-600 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-800 rounded p-1">
                             <Trash2 size={14} />
                           </button>
                         </div>
