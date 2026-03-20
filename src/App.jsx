@@ -565,7 +565,7 @@ export default function App() {
                   <div className="flex flex-col gap-3 mt-4">
                     <div className="flex justify-between items-center px-1">
                       <label id="tmi-label" className="text-xs font-bold text-slate-500 uppercase tracking-tight">Tranche TMI</label>
-                      <InfoTooltip text="Votre tranche marginale d'imposition (0, 11, 30, 41, 45%)" />
+                      <InfoTooltip id="tmi-tooltip" text="Votre tranche marginale d'imposition (0, 11, 30, 41, 45%)" />
                     </div>
                     <div role="tablist" aria-labelledby="tmi-label" className="flex bg-slate-50 dark:bg-slate-800 p-1 rounded-lg gap-1">
                       {TMI_OPTIONS.map(t => (
