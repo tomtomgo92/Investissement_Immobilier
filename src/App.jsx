@@ -63,7 +63,15 @@ export default function App() {
     }
     // 2. Check local storage
     const saved = localStorage.getItem('invest_simulations');
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      // 🛡️ Sentinel: Wrap localStorage JSON.parse in try-catch to prevent persistent client-side DoS
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse saved simulations. Falling back to default.', e);
+        localStorage.removeItem('invest_simulations'); // Clear corrupted data
+      }
+    }
 
     // 3. Default fallback
     return [{ id: uuidv4(), name: 'Investissement Lyon 3', pipelineStatus: 'À analyser', data: { ...INITIAL_DATA } }];
