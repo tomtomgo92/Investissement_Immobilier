@@ -10,3 +10,6 @@
 ## 2025-03-09 - Unmemoized Heavy Loops inside React Components
 **Learning:** Unmemoized heavy calculations (like binary searches running 50 iterations of `calculateResults`) inside React components cause severe main-thread blocking during superficial parent renders. The `ReverseCalculator` component was recalculating the max purchase price and min rents on every single re-render of the parent component, even when none of the related properties changed (e.g. toggling visibility or switching tabs).
 **Action:** Always wrap expensive derivation blocks (like large or nested loops with high computational cost) in `useMemo` with strict dependency arrays to ensure they only run when their base inputs change. Sub-methods called within the memo should be wrapped in `useCallback`.
+## 2025-03-21 - React List Rendering and O(N) Parent Calculations
+**Learning:** When rendering a list of complex entities (like DealPipeline cards), calculating derived metrics in the parent using `useMemo` with `.map()` causes an O(N) performance bottleneck on every list update, and destroys object identity which defeats child memoization.
+**Action:** Extract list items into individual `React.memo` components, pass the raw data object directly to them, and localize computationally expensive calls within the child component using `useMemo`.
