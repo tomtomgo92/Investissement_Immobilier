@@ -281,7 +281,7 @@ export const calculatePipelineMetrics = (d) => {
     const fraisConciergerieAn = recetteAnnuelle * (fConc / 100);
     totalChargesAnnuelles += fraisConciergerieAn;
   } else {
-    recetteMensuelleBrute = d.loyers.reduce((acc, curr) => acc + curr, 0);
+    recetteMensuelleBrute = (d.loyers || []).reduce((acc, curr) => acc + curr, 0);
     const recetteMensuelleRéelle = recetteMensuelleBrute * (1 - (d.vacanceLocative / 100));
     recetteAnnuelle = recetteMensuelleRéelle * 12;
   }
@@ -365,7 +365,7 @@ export const calculateResults = (d) => {
     const fraisConciergerieAn = recetteAnnuelle * (fConc / 100);
     totalChargesAnnuelles += fraisConciergerieAn;
   } else {
-    recetteMensuelleBrute = d.loyers.reduce((acc, curr) => acc + curr, 0);
+    recetteMensuelleBrute = (d.loyers || []).reduce((acc, curr) => acc + curr, 0);
     recetteMensuelleRéelle = recetteMensuelleBrute * (1 - (d.vacanceLocative / 100));
     recetteAnnuelle = recetteMensuelleRéelle * 12;
   }

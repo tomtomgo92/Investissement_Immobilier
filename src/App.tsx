@@ -264,7 +264,7 @@ export default function App() {
       const tOcc = s.data.tauxOccupation ?? 65;
       const loyerMensuelTotal = s.data.typeLocation === 'courte_duree'
            ? (pNuit * 365 * (tOcc / 100)) / 12
-           : s.data.loyers.reduce((acc: number, val: number) => acc + val, 0);
+           : (s.data.loyers || []).reduce((acc: number, val: number) => acc + val, 0);
       newData.charges = autoEstimateCharges(pendingImportData.prixAchat, loyerMensuelTotal);
 
       // Inject the manual Copropriété value
@@ -644,8 +644,8 @@ export default function App() {
                           Auto
                         </button>
                         <div className="flex items-center gap-1 bg-slate-50 dark:bg-white/[0.05] p-1 rounded-xl border border-slate-100 dark:border-white/[0.08]">
-                          <button aria-label="Diminuer le nombre de colocataires" onClick={() => { const c = Math.max(0, activeSim.data.nbColocs - 1); setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: s.data.loyers.slice(0, c) } } : s)); }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all text-slate-500">-</button>
-                          <button aria-label="Augmenter le nombre de colocataires" onClick={() => { const c = activeSim.data.nbColocs + 1; setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: [...s.data.loyers, 0] } } : s)); }} className="w-8 h-8 flex items-center justify-center rounded-lg text-indigo-600 dark:text-indigo-400 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all">+</button>
+                          <button aria-label="Diminuer le nombre de colocataires" onClick={() => { const c = Math.max(0, activeSim.data.nbColocs - 1); setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: (s.data.loyers || []).slice(0, c) } } : s)); }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all text-slate-500">-</button>
+                          <button aria-label="Augmenter le nombre de colocataires" onClick={() => { const c = activeSim.data.nbColocs + 1; setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: [...(s.data.loyers || []), 0] } } : s)); }} className="w-8 h-8 flex items-center justify-center rounded-lg text-indigo-600 dark:text-indigo-400 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all">+</button>
                         </div>
                       </div>
                     )
@@ -680,7 +680,7 @@ export default function App() {
                           <span>Unité</span>
                           <span>Loyer Mensuel</span>
                         </div>
-                        {activeSim.data.loyers.map((l: number, i: number) => (
+                        {activeSim.data.nbColocs > 0 && (activeSim.data.loyers || []).map((l: number, i: number) => (
                           <div key={i} className="flex items-center gap-4 group">
                             <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-white/[0.05] flex items-center justify-center text-[10px] font-bold text-slate-500">{i + 1}</div>
                             <div className="relative flex-1">
@@ -692,7 +692,7 @@ export default function App() {
                                   const v = parseFloat(e.target.value) || 0;
                                   setSimulations(p => p.map(s => {
                                     if (s.id !== activeSimId) return s;
-                                    const nl = [...s.data.loyers];
+                                    const nl = [...(s.data.loyers || [])];
                                     nl[i] = v;
                                     return { ...s, data: { ...s.data, loyers: nl } };
                                   }));
@@ -790,7 +790,7 @@ export default function App() {
               onApplyMinRent={(rent) => {
                  setSimulations(p => p.map(s => {
                     if (s.id !== activeSimId) return s;
-                    return { ...s, data: { ...s.data, loyers: s.data.loyers.map(() => rent) } };
+                    return { ...s, data: { ...s.data, loyers: (s.data.loyers || []).map(() => rent) } };
                  }));
               }}
             />
