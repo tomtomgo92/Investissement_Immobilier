@@ -644,8 +644,8 @@ export default function App() {
                           Auto
                         </button>
                         <div className="flex items-center gap-1 bg-slate-50 dark:bg-white/[0.05] p-1 rounded-xl border border-slate-100 dark:border-white/[0.08]">
-                          <button aria-label="Diminuer le nombre de colocataires" onClick={() => { const c = Math.max(0, activeSim.data.nbColocs - 1); setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: getLoyersArr(s.data.loyers).slice(0, c) } } : s)); }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all text-slate-500">-</button>
-                          <button aria-label="Augmenter le nombre de colocataires" onClick={() => { const c = activeSim.data.nbColocs + 1; setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: [...getLoyersArr(s.data.loyers), 0] } } : s)); }} className="w-8 h-8 flex items-center justify-center rounded-lg text-indigo-600 dark:text-indigo-400 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all">+</button>
+                          <button aria-label="Diminuer le nombre de colocataires" onClick={() => { const c = Math.max(0, activeSim.data.nbColocs - 1); setSimulations(p => p.map(s => { if (s.id !== activeSimId) return s; const total = getLoyersArr(s.data.loyers).reduce((a,b)=>a+b,0); return { ...s, data: { ...s.data, nbColocs: c, loyers: c > 0 ? Array(c).fill(Math.ceil(total/c)) : [] } }; })); }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all text-slate-500">-</button>
+                          <button aria-label="Augmenter le nombre de colocataires" onClick={() => { const c = activeSim.data.nbColocs + 1; setSimulations(p => p.map(s => { if (s.id !== activeSimId) return s; const total = getLoyersArr(s.data.loyers).reduce((a,b)=>a+b,0); return { ...s, data: { ...s.data, nbColocs: c, loyers: Array(c).fill(Math.ceil(total/c)) } }; })); }} className="w-8 h-8 flex items-center justify-center rounded-lg text-indigo-600 dark:text-indigo-400 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all">+</button>
                         </div>
                       </div>
                     )
@@ -680,7 +680,9 @@ export default function App() {
                           <span>Unité</span>
                           <span>Loyer Mensuel</span>
                         </div>
-                        {activeSim.data.nbColocs > 0 && getLoyersArr(activeSim.data.loyers).map((l: number, i: number) => (
+                        {activeSim.data.nbColocs > 0 && Array.from({ length: activeSim.data.nbColocs }).map((_, i: number) => {
+                          const l = getLoyersArr(activeSim.data.loyers)[i] || 0;
+                          return (
                           <div key={i} className="flex items-center gap-4 group">
                             <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-white/[0.05] flex items-center justify-center text-[10px] font-bold text-slate-500">{i + 1}</div>
                             <div className="relative flex-1">
@@ -702,7 +704,8 @@ export default function App() {
                               <span aria-hidden="true" className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-medium pointer-events-none">€</span>
                             </div>
                           </div>
-                        ))}
+                          );
+                        })}
                       </>
                     )}
 
