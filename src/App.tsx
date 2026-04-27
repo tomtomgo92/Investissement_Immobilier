@@ -237,11 +237,13 @@ export default function App() {
   const toggleDimension = (dim: keyof typeof visibleDimensions) => setVisibleDimensions(p => ({ ...p, [dim]: !p[dim] }));
 
   const openSaisieRapide = () => {
+    const existingCopro = activeSim.data.charges.find((c: any) => c.name.toLowerCase().includes('copro'));
     setPendingImportData({
       titre: '',
       prixAchat: activeSim.data.prixAchat || 0,
       surface: activeSim.data.surface || 0,
-      codePostal: activeSim.data.codePostal || ''
+      codePostal: activeSim.data.codePostal || '',
+      chargesCopro: existingCopro ? existingCopro.value : 0
     });
   };
 
@@ -264,6 +266,14 @@ export default function App() {
            ? (pNuit * 365 * (tOcc / 100)) / 12
            : s.data.loyers.reduce((acc: number, val: number) => acc + val, 0);
       newData.charges = autoEstimateCharges(pendingImportData.prixAchat, loyerMensuelTotal);
+
+      // Inject the manual Copropriété value
+      const coproIdx = newData.charges.findIndex((c: any) => c.name.toLowerCase().includes('copro'));
+      if (coproIdx !== -1) {
+        newData.charges[coproIdx].value = pendingImportData.chargesCopro || 0;
+      } else if (pendingImportData.chargesCopro > 0) {
+        newData.charges.push({ id: crypto.randomUUID(), name: 'Copropriété', value: pendingImportData.chargesCopro });
+      }
 
       // Also update notaire fees
       newData.fraisNotaire = Math.round(pendingImportData.prixAchat * 0.08);
@@ -784,14 +794,25 @@ export default function App() {
                     />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Code Postal</label>
-                  <input
-                    type="text"
-                    value={pendingImportData.codePostal || ''}
-                    onChange={(e) => setPendingImportData({...pendingImportData, codePostal: e.target.value})}
-                    className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Code Postal</label>
+                    <input
+                      type="text"
+                      value={pendingImportData.codePostal || ''}
+                      onChange={(e) => setPendingImportData({...pendingImportData, codePostal: e.target.value})}
+                      className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Charges Copro (€/an)</label>
+                    <input
+                      type="number"
+                      value={pendingImportData.chargesCopro || 0}
+                      onChange={(e) => setPendingImportData({...pendingImportData, chargesCopro: Number(e.target.value)})}
+                      className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
                 </div>
               </div>
 
