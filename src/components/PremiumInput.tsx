@@ -3,7 +3,7 @@ import InfoTooltip from './InfoTooltip';
 import { cn } from '../lib/utils';
 
 interface PremiumInputProps {
-    label: string;
+    label: React.ReactNode | string;
     value: string | number;
     onChange: (value: string) => void;
     tooltip?: string;

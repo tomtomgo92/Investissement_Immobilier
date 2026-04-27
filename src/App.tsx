@@ -605,7 +605,7 @@ export default function App() {
                     {activeSim.data.typeLocation === 'courte_duree' ? (
                       <div className="space-y-6">
                         <PremiumInput label="Prix par nuitée (ADR)" value={activeSim.data.prixNuitee ?? 85} onChange={(v) => updateData('prixNuitee', Number(v))} suffix="€" />
-                        <PremiumInput label="Taux d'occupation estimé" value={activeSim.data.tauxOccupation ?? 65} onChange={(v) => updateData('tauxOccupation', Number(v))} suffix="%" />
+                        <PremiumInput label={<span>Taux d'occupation estimé <span className="text-[10px] text-slate-400 font-normal ml-1">(environ {Math.round(365 * ((activeSim.data.tauxOccupation ?? 65) / 100))}j)</span></span>} value={activeSim.data.tauxOccupation ?? 65} onChange={(v) => updateData('tauxOccupation', Number(v))} suffix="%" />
                         <PremiumInput label="Frais Plateforme / Conciergerie" value={activeSim.data.fraisConciergerie ?? 20} onChange={(v) => updateData('fraisConciergerie', Number(v))} suffix="%" />
                       </div>
                     ) : (
