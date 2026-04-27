@@ -271,10 +271,14 @@ export const calculatePipelineMetrics = (d) => {
   let totalChargesAnnuelles = d.charges.reduce((acc, c) => acc + c.value, 0);
 
   if (d.typeLocation === 'courte_duree') {
-    recetteAnnuelle = (d.prixNuitee || 0) * 365 * ((d.tauxOccupation || 0) / 100);
+    const pNuit = d.prixNuitee ?? 85;
+    const tOcc = d.tauxOccupation ?? 65;
+    const fConc = d.fraisConciergerie ?? 20;
+
+    recetteAnnuelle = pNuit * 365 * (tOcc / 100);
     recetteMensuelleBrute = recetteAnnuelle / 12;
     // Add conciergerie fees to annual charges
-    const fraisConciergerieAn = recetteAnnuelle * ((d.fraisConciergerie || 0) / 100);
+    const fraisConciergerieAn = recetteAnnuelle * (fConc / 100);
     totalChargesAnnuelles += fraisConciergerieAn;
   } else {
     recetteMensuelleBrute = d.loyers.reduce((acc, curr) => acc + curr, 0);
@@ -350,11 +354,15 @@ export const calculateResults = (d) => {
   let totalChargesAnnuelles = d.charges.reduce((acc, c) => acc + c.value, 0);
 
   if (d.typeLocation === 'courte_duree') {
-    recetteAnnuelle = (d.prixNuitee || 0) * 365 * ((d.tauxOccupation || 0) / 100);
+    const pNuit = d.prixNuitee ?? 85;
+    const tOcc = d.tauxOccupation ?? 65;
+    const fConc = d.fraisConciergerie ?? 20;
+
+    recetteAnnuelle = pNuit * 365 * (tOcc / 100);
     recetteMensuelleBrute = recetteAnnuelle / 12;
     recetteMensuelleRéelle = recetteMensuelleBrute; // Occupancy rate already accounts for vacancy
     // Add conciergerie fees to annual charges
-    const fraisConciergerieAn = recetteAnnuelle * ((d.fraisConciergerie || 0) / 100);
+    const fraisConciergerieAn = recetteAnnuelle * (fConc / 100);
     totalChargesAnnuelles += fraisConciergerieAn;
   } else {
     recetteMensuelleBrute = d.loyers.reduce((acc, curr) => acc + curr, 0);

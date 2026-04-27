@@ -6,7 +6,7 @@
 export const scrapeUrl = (url) => {
   return new Promise((resolve, reject) => {
     // Basic validation
-    if (!url || typeof url !== 'string' || !url.startsWith('http')) {
+    if (!url || typeof url !== 'string') {
       return reject(new Error("URL invalide"));
     }
 

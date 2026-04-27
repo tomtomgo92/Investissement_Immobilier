@@ -255,7 +255,11 @@ export default function App() {
           codePostal: data.codePostal || s.data.codePostal
         };
         // Estimate charges based on new price and current rents
-        const loyerMensuelTotal = s.data.loyers.reduce((acc: number, val: number) => acc + val, 0);
+        const pNuit = s.data.prixNuitee ?? 85;
+        const tOcc = s.data.tauxOccupation ?? 65;
+        const loyerMensuelTotal = s.data.typeLocation === 'courte_duree'
+             ? (pNuit * 365 * (tOcc / 100)) / 12
+             : s.data.loyers.reduce((acc: number, val: number) => acc + val, 0);
         newData.charges = autoEstimateCharges(data.prixAchat, loyerMensuelTotal);
 
         // Also update notaire fees
@@ -601,9 +605,9 @@ export default function App() {
                   <div className="space-y-4 pr-1">
                     {activeSim.data.typeLocation === 'courte_duree' ? (
                       <div className="space-y-6">
-                        <PremiumInput label="Prix par nuitée (ADR)" value={activeSim.data.prixNuitee || 0} onChange={(v) => updateData('prixNuitee', Number(v))} suffix="€" />
-                        <PremiumInput label="Taux d'occupation estimé" value={activeSim.data.tauxOccupation || 0} onChange={(v) => updateData('tauxOccupation', Number(v))} suffix="%" />
-                        <PremiumInput label="Frais Plateforme / Conciergerie" value={activeSim.data.fraisConciergerie || 0} onChange={(v) => updateData('fraisConciergerie', Number(v))} suffix="%" />
+                        <PremiumInput label="Prix par nuitée (ADR)" value={activeSim.data.prixNuitee ?? 85} onChange={(v) => updateData('prixNuitee', Number(v))} suffix="€" />
+                        <PremiumInput label="Taux d'occupation estimé" value={activeSim.data.tauxOccupation ?? 65} onChange={(v) => updateData('tauxOccupation', Number(v))} suffix="%" />
+                        <PremiumInput label="Frais Plateforme / Conciergerie" value={activeSim.data.fraisConciergerie ?? 20} onChange={(v) => updateData('fraisConciergerie', Number(v))} suffix="%" />
                       </div>
                     ) : (
                       <>
