@@ -533,9 +533,11 @@ export default function App() {
                       ))}
                     </div>
                   </div>
-                  <div className="mt-6">
-                    <PremiumInput label="Vacance Locative" value={activeSim.data.vacanceLocative} onChange={(v) => updateData('vacanceLocative', Number(v))} suffix="%" />
-                  </div>
+                  {activeSim.data.typeLocation !== 'courte_duree' && (
+                    <div className="mt-6">
+                      <PremiumInput label="Vacance Locative" value={activeSim.data.vacanceLocative} onChange={(v) => updateData('vacanceLocative', Number(v))} suffix="%" />
+                    </div>
+                  )}
                 </DashboardSection>
 
                 <DashboardSection
@@ -588,40 +590,52 @@ export default function App() {
                   icon={<Users size={18} className="text-slate-400" />}
                   className="flex-1"
                   rightElement={
-                    <div className="flex items-center gap-1 bg-slate-50 dark:bg-white/[0.05] p-1 rounded-xl border border-slate-100 dark:border-white/[0.08]">
-                      <button aria-label="Diminuer le nombre de colocataires" onClick={() => { const c = Math.max(0, activeSim.data.nbColocs - 1); setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: s.data.loyers.slice(0, c) } } : s)); }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all text-slate-500">-</button>
-                      <button aria-label="Augmenter le nombre de colocataires" onClick={() => { const c = activeSim.data.nbColocs + 1; setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: [...s.data.loyers, 0] } } : s)); }} className="w-8 h-8 flex items-center justify-center rounded-lg text-indigo-600 dark:text-indigo-400 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all">+</button>
-                    </div>
+                    activeSim.data.typeLocation !== 'courte_duree' && (
+                      <div className="flex items-center gap-1 bg-slate-50 dark:bg-white/[0.05] p-1 rounded-xl border border-slate-100 dark:border-white/[0.08]">
+                        <button aria-label="Diminuer le nombre de colocataires" onClick={() => { const c = Math.max(0, activeSim.data.nbColocs - 1); setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: s.data.loyers.slice(0, c) } } : s)); }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all text-slate-500">-</button>
+                        <button aria-label="Augmenter le nombre de colocataires" onClick={() => { const c = activeSim.data.nbColocs + 1; setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: [...s.data.loyers, 0] } } : s)); }} className="w-8 h-8 flex items-center justify-center rounded-lg text-indigo-600 dark:text-indigo-400 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all">+</button>
+                      </div>
+                    )
                   }
                 >
                   <div className="space-y-4 pr-1">
-                    <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-2">
-                      <span>Unité</span>
-                      <span>Loyer Mensuel</span>
-                    </div>
-                    {activeSim.data.loyers.map((l: number, i: number) => (
-                      <div key={i} className="flex items-center gap-4 group">
-                        <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-white/[0.05] flex items-center justify-center text-[10px] font-bold text-slate-500">{i + 1}</div>
-                        <div className="relative flex-1">
-                          <input
-                            type="number"
-                            value={l}
-                            aria-label={`Loyer de l'unité ${i + 1}`}
-                            onChange={(e) => {
-                              const v = parseFloat(e.target.value) || 0;
-                              setSimulations(p => p.map(s => {
-                                if (s.id !== activeSimId) return s;
-                                const nl = [...s.data.loyers];
-                                nl[i] = v;
-                                return { ...s, data: { ...s.data, loyers: nl } };
-                              }));
-                            }}
-                            className="w-full bg-slate-50 dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] rounded-xl px-4 py-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                          />
-                          <span aria-hidden="true" className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-medium pointer-events-none">€</span>
-                        </div>
+                    {activeSim.data.typeLocation === 'courte_duree' ? (
+                      <div className="space-y-6">
+                        <PremiumInput label="Prix par nuitée (ADR)" value={activeSim.data.prixNuitee || 0} onChange={(v) => updateData('prixNuitee', Number(v))} suffix="€" />
+                        <PremiumInput label="Taux d'occupation estimé" value={activeSim.data.tauxOccupation || 0} onChange={(v) => updateData('tauxOccupation', Number(v))} suffix="%" />
+                        <PremiumInput label="Frais Plateforme / Conciergerie" value={activeSim.data.fraisConciergerie || 0} onChange={(v) => updateData('fraisConciergerie', Number(v))} suffix="%" />
                       </div>
-                    ))}
+                    ) : (
+                      <>
+                        <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-2">
+                          <span>Unité</span>
+                          <span>Loyer Mensuel</span>
+                        </div>
+                        {activeSim.data.loyers.map((l: number, i: number) => (
+                          <div key={i} className="flex items-center gap-4 group">
+                            <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-white/[0.05] flex items-center justify-center text-[10px] font-bold text-slate-500">{i + 1}</div>
+                            <div className="relative flex-1">
+                              <input
+                                type="number"
+                                value={l}
+                                aria-label={`Loyer de l'unité ${i + 1}`}
+                                onChange={(e) => {
+                                  const v = parseFloat(e.target.value) || 0;
+                                  setSimulations(p => p.map(s => {
+                                    if (s.id !== activeSimId) return s;
+                                    const nl = [...s.data.loyers];
+                                    nl[i] = v;
+                                    return { ...s, data: { ...s.data, loyers: nl } };
+                                  }));
+                                }}
+                                className="w-full bg-slate-50 dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] rounded-xl px-4 py-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                              />
+                              <span aria-hidden="true" className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-medium pointer-events-none">€</span>
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    )}
 
                     <div className="mt-8 p-6 bg-slate-50 dark:bg-white/[0.03] rounded-2xl border border-slate-100 dark:border-white/[0.05] space-y-3">
                       <div className="flex justify-between items-center">

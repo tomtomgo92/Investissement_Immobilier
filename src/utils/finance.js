@@ -26,6 +26,11 @@ export const INITIAL_DATA = {
   tmi: 30, // Tranche Marginale d'Imposition default
   typeLocation: 'meuble_long',
   regimeFiscal: 'auto',
+
+  // Airbnb Specific
+  prixNuitee: 85,
+  tauxOccupation: 65,
+  fraisConciergerie: 20,
 };
 
 export const TMI_OPTIONS = [0, 11, 30, 41, 45];
@@ -261,10 +266,21 @@ export const calculatePipelineMetrics = (d) => {
   }
 
   // Operational Flows
-  const recetteMensuelleBrute = d.loyers.reduce((acc, curr) => acc + curr, 0);
-  const recetteMensuelleRéelle = recetteMensuelleBrute * (1 - (d.vacanceLocative / 100));
-  const recetteAnnuelle = recetteMensuelleRéelle * 12;
-  const totalChargesAnnuelles = d.charges.reduce((acc, c) => acc + c.value, 0);
+  let recetteMensuelleBrute = 0;
+  let recetteAnnuelle = 0;
+  let totalChargesAnnuelles = d.charges.reduce((acc, c) => acc + c.value, 0);
+
+  if (d.typeLocation === 'courte_duree') {
+    recetteAnnuelle = (d.prixNuitee || 0) * 365 * ((d.tauxOccupation || 0) / 100);
+    recetteMensuelleBrute = recetteAnnuelle / 12;
+    // Add conciergerie fees to annual charges
+    const fraisConciergerieAn = recetteAnnuelle * ((d.fraisConciergerie || 0) / 100);
+    totalChargesAnnuelles += fraisConciergerieAn;
+  } else {
+    recetteMensuelleBrute = d.loyers.reduce((acc, curr) => acc + curr, 0);
+    const recetteMensuelleRéelle = recetteMensuelleBrute * (1 - (d.vacanceLocative / 100));
+    recetteAnnuelle = recetteMensuelleRéelle * 12;
+  }
   const creditAnnee = mCredit * 12;
 
   // Yields
@@ -328,10 +344,24 @@ export const calculateResults = (d) => {
 
 
   // Operational Flows
-  const recetteMensuelleBrute = d.loyers.reduce((acc, curr) => acc + curr, 0);
-  const recetteMensuelleRéelle = recetteMensuelleBrute * (1 - (d.vacanceLocative / 100));
-  const recetteAnnuelle = recetteMensuelleRéelle * 12;
-  const totalChargesAnnuelles = d.charges.reduce((acc, c) => acc + c.value, 0);
+  let recetteMensuelleBrute = 0;
+  let recetteMensuelleRéelle = 0;
+  let recetteAnnuelle = 0;
+  let totalChargesAnnuelles = d.charges.reduce((acc, c) => acc + c.value, 0);
+
+  if (d.typeLocation === 'courte_duree') {
+    recetteAnnuelle = (d.prixNuitee || 0) * 365 * ((d.tauxOccupation || 0) / 100);
+    recetteMensuelleBrute = recetteAnnuelle / 12;
+    recetteMensuelleRéelle = recetteMensuelleBrute; // Occupancy rate already accounts for vacancy
+    // Add conciergerie fees to annual charges
+    const fraisConciergerieAn = recetteAnnuelle * ((d.fraisConciergerie || 0) / 100);
+    totalChargesAnnuelles += fraisConciergerieAn;
+  } else {
+    recetteMensuelleBrute = d.loyers.reduce((acc, curr) => acc + curr, 0);
+    recetteMensuelleRéelle = recetteMensuelleBrute * (1 - (d.vacanceLocative / 100));
+    recetteAnnuelle = recetteMensuelleRéelle * 12;
+  }
+
   const creditAnnee = mCredit * 12;
 
   // Yields
