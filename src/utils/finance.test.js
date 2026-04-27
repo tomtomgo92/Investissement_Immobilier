@@ -1,5 +1,4 @@
-import { test } from 'node:test';
-import assert from 'node:assert';
+import { describe, test, it, expect } from 'vitest';
 import {
   calculateInvestmentTotal,
   calculateLoanAmount,
@@ -8,37 +7,37 @@ import {
 } from './finance.js';
 
 test('calculateInvestmentTotal - sums up costs', () => {
-  assert.strictEqual(calculateInvestmentTotal(100000, 20000, 8000), 128000);
-  assert.strictEqual(calculateInvestmentTotal(0, 0, 0), 0);
+  expect(calculateInvestmentTotal(100000, 20000, 8000)).toBe(128000);
+  expect(calculateInvestmentTotal(0, 0, 0)).toBe(0);
 });
 
 test('calculateLoanAmount - subtracts down payment from total', () => {
-  assert.strictEqual(calculateLoanAmount(128000, 28000), 100000);
+  expect(calculateLoanAmount(128000, 28000)).toBe(100000);
 });
 
 test('calculateLoanAmount - returns 0 if down payment exceeds total', () => {
-  assert.strictEqual(calculateLoanAmount(100000, 150000), 0);
+  expect(calculateLoanAmount(100000, 150000)).toBe(0);
 });
 
 test('calculateMonthlyPayment - standard mortgage calculation', () => {
   // 100,000 EUR, 3.5%, 20 years
   const payment = calculateMonthlyPayment(100000, 3.5, 20);
-  assert.ok(Math.abs(payment - 579.96) < 0.01, `Expected ~579.96, got ${payment}`);
+  expect(Math.abs(payment - 579.96) < 0.01).toBeTruthy();
 });
 
 test('calculateMonthlyPayment - 0% interest rate', () => {
   const payment = calculateMonthlyPayment(120000, 0, 10);
-  assert.strictEqual(payment, 1000);
+  expect(payment).toBe(1000);
 });
 
 test('calculateMonthlyPayment - 0 years duration', () => {
   const payment = calculateMonthlyPayment(100000, 3.5, 0);
-  assert.strictEqual(payment, 0);
+  expect(payment).toBe(0);
 });
 
 test('calculateMonthlyPayment - 0 loan amount', () => {
   const payment = calculateMonthlyPayment(0, 3.5, 20);
-  assert.strictEqual(payment, 0);
+  expect(payment).toBe(0);
 });
 
 test('calculateRentalYields - standard scenario', () => {
@@ -50,6 +49,6 @@ test('calculateRentalYields - standard scenario', () => {
   };
 
   const { rBrute, rNet } = calculateRentalYields(params);
-  assert.strictEqual(rBrute, 6);
-  assert.strictEqual(rNet, 4.7);
+  expect(rBrute).toBe(6);
+  expect(rNet).toBe(4.7);
 });

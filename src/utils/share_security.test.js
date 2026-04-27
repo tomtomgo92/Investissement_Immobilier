@@ -1,6 +1,6 @@
 
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
+import { describe, test, it, expect } from 'vitest';
+
 import { decodeShareCode, encodeShareCode } from './share.js';
 
 describe('share utils - security boundaries', () => {
@@ -30,7 +30,7 @@ describe('share utils - security boundaries', () => {
     invalid.name = 'A'.repeat(1000000); // 1MB string
     const encoded = encodeShareCode(invalid);
     const decoded = decodeShareCode(encoded);
-    assert.strictEqual(decoded, null);
+    expect(decoded).toBe(null);
   });
 
   it('should reject extremely long nested strings in charges (DoS risk)', () => {
@@ -38,7 +38,7 @@ describe('share utils - security boundaries', () => {
     invalid.data.charges = [{ id: '1', name: 'A'.repeat(100000), value: 100 }];
     const encoded = encodeShareCode(invalid);
     const decoded = decodeShareCode(encoded);
-    assert.strictEqual(decoded, null);
+    expect(decoded).toBe(null);
   });
 
   it('should reject extremely large number of charges (DoS/Memory)', () => {
@@ -47,7 +47,7 @@ describe('share utils - security boundaries', () => {
     invalid.data.charges = Array(10001).fill({ id: '1', name: 'Charge', value: 100 });
     const encoded = encodeShareCode(invalid);
     const decoded = decodeShareCode(encoded);
-    assert.strictEqual(decoded, null);
+    expect(decoded).toBe(null);
   });
 
   it('should reject extremely large number of loyers (DoS/Memory)', () => {
@@ -55,7 +55,7 @@ describe('share utils - security boundaries', () => {
     invalid.data.loyers = Array(10001).fill(500);
     const encoded = encodeShareCode(invalid);
     const decoded = decodeShareCode(encoded);
-    assert.strictEqual(decoded, null);
+    expect(decoded).toBe(null);
   });
 
   it('should reject Infinite numbers (Calculation break)', () => {
@@ -63,7 +63,7 @@ describe('share utils - security boundaries', () => {
     const json = JSON.stringify(invalid).replace('100000', '1e1000'); // Number too big for JS
     const encoded = btoa(json);
     const decoded = decodeShareCode(encoded);
-    assert.strictEqual(decoded, null);
+    expect(decoded).toBe(null);
   });
 
   it('should reject extremely large values outside safe range', () => {
@@ -71,7 +71,7 @@ describe('share utils - security boundaries', () => {
     invalid.data.prixAchat = 2e9; // > 1e9
     const encoded = encodeShareCode(invalid);
     const decoded = decodeShareCode(encoded);
-    assert.strictEqual(decoded, null);
+    expect(decoded).toBe(null);
   });
 
   it('should reject negative values where not appropriate', () => {
@@ -79,7 +79,7 @@ describe('share utils - security boundaries', () => {
     invalid.data.dureeCredit = -10;
     const encoded = encodeShareCode(invalid);
     const decoded = decodeShareCode(encoded);
-    assert.strictEqual(decoded, null);
+    expect(decoded).toBe(null);
   });
 
   it('should reject malformed numeric fields (NaN)', () => {
@@ -91,6 +91,6 @@ describe('share utils - security boundaries', () => {
      delete invalid.data.prixAchat;
      const encoded = encodeShareCode(invalid);
      const decoded = decodeShareCode(encoded);
-     assert.strictEqual(decoded, null);
+     expect(decoded).toBe(null);
   });
 });

@@ -1,6 +1,6 @@
 
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
+import { describe, test, it, expect } from 'vitest';
+
 import { decodeShareCode, encodeShareCode } from './share.js';
 
 describe('share utils', () => {
@@ -27,12 +27,12 @@ describe('share utils', () => {
   it('should decode a valid share code', () => {
     const encoded = encodeShareCode(validData);
     const decoded = decodeShareCode(encoded);
-    assert.deepStrictEqual(decoded, validData);
+    expect(decoded).toEqual(validData);
   });
 
   it('should return null for invalid base64', () => {
     const decoded = decodeShareCode('invalid-base64');
-    assert.strictEqual(decoded, null);
+    expect(decoded).toBe(null);
   });
 
   it('should properly encode and decode names with special characters and emojis', () => {
@@ -40,14 +40,14 @@ describe('share utils', () => {
     dataWithSpecialChars.name = 'Investissement à Lyon 💸';
     const encoded = encodeShareCode(dataWithSpecialChars);
     const decoded = decodeShareCode(encoded);
-    assert.deepStrictEqual(decoded, dataWithSpecialChars);
+    expect(decoded).toEqual(dataWithSpecialChars);
   });
 
   it('should reject incomplete data (security fix)', () => {
     const malicious = { evil: 'data' };
     const encoded = encodeShareCode(malicious);
     const decoded = decodeShareCode(encoded);
-    assert.strictEqual(decoded, null);
+    expect(decoded).toBe(null);
   });
 
   it('should reject data with missing numeric fields', () => {
@@ -55,7 +55,7 @@ describe('share utils', () => {
     delete invalid.data.prixAchat;
     const encoded = encodeShareCode(invalid);
     const decoded = decodeShareCode(encoded);
-    assert.strictEqual(decoded, null);
+    expect(decoded).toBe(null);
   });
 
   it('should reject data with invalid types', () => {
@@ -63,7 +63,7 @@ describe('share utils', () => {
     invalid.data.prixAchat = "100000"; // string instead of number
     const encoded = encodeShareCode(invalid);
     const decoded = decodeShareCode(encoded);
-    assert.strictEqual(decoded, null);
+    expect(decoded).toBe(null);
   });
 
   it('should reject data with invalid charges structure', () => {
@@ -71,6 +71,6 @@ describe('share utils', () => {
     invalid.data.charges = [{ id: '1', name: 'Charge', value: "100" }]; // value as string
     const encoded = encodeShareCode(invalid);
     const decoded = decodeShareCode(encoded);
-    assert.strictEqual(decoded, null);
+    expect(decoded).toBe(null);
   });
 });

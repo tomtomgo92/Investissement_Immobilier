@@ -1,5 +1,5 @@
-import { test } from 'node:test';
-import assert from 'node:assert';
+import { describe, test, it, expect } from 'vitest';
+
 import { calculateResults, INITIAL_DATA } from './finance.js';
 
 test('calculateResults - Tax Optimization - Micro-BIC better (Low charges)', () => {
@@ -17,9 +17,9 @@ test('calculateResults - Tax Optimization - Micro-BIC better (Low charges)', () 
     };
 
     const results = calculateResults(data);
-    assert.strictEqual(results.recetteAnnuelle, 6000);
+    expect(results.recetteAnnuelle).toBe(6000);
     const optimal = results.projectionData[0].optimalRegime;
-    assert.strictEqual(optimal, 'micro_bic');
+    expect(optimal).toBe('micro_bic');
 });
 
 test('calculateResults - Tax Optimization - Real better (High amortization/charges)', () => {
@@ -41,7 +41,7 @@ test('calculateResults - Tax Optimization - Real better (High amortization/charg
     // IS is 2000 * 0.15 = 300. So IS still wins in default cases where we just evaluate pure tax.
     // We should assert that the best regime is one of the valid ones.
     const optimal = results.projectionData[0].optimalRegime;
-    assert.ok(['sci_is', 'bic_reel'].includes(optimal));
+    expect(['sci_is', 'bic_reel'].includes(optimal)).toBeTruthy();
 });
 
 test('calculateResults - Location nue restricts to foncier regimes and SCI', () => {
@@ -53,5 +53,5 @@ test('calculateResults - Location nue restricts to foncier regimes and SCI', () 
     };
     const results = calculateResults(data);
     const optimal = results.projectionData[0].optimalRegime;
-    assert.ok(['micro_foncier', 'foncier_reel', 'sci_ir', 'sci_is'].includes(optimal));
+    expect(['micro_foncier', 'foncier_reel', 'sci_ir', 'sci_is'].includes(optimal)).toBeTruthy();
 });

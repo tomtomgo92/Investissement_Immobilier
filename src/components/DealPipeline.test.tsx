@@ -1,29 +1,27 @@
 import { render } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import DealPipeline from './DealPipeline';
 import React from 'react';
 
-// Mock Zustand store
-import { useSimulationStore } from '../store/useSimulationStore';
-import { vi } from 'vitest';
-
-vi.mock('../store/useSimulationStore', () => ({
-  useSimulationStore: vi.fn(),
-}));
-
 describe('DealPipeline Component', () => {
   it('renders without crashing', () => {
-    (useSimulationStore as any).mockImplementation((selector: any) => {
-      const state = {
-        simulations: [],
-        setSimulations: vi.fn(),
-        setActiveSimId: vi.fn(),
-        setViewMode: vi.fn(),
-      };
-      return selector(state);
-    });
-
-    const { container } = render(<DealPipeline />);
+    const mockProps = {
+      simulations: [
+        {
+          id: '1',
+          name: 'Test Sim',
+          data: {
+            prixAchat: 100000,
+            loyers: [500],
+            charges: []
+          }
+        }
+      ],
+      setSimulations: vi.fn(),
+      setActiveSimId: vi.fn(),
+      setViewMode: vi.fn()
+    };
+    const { container } = render(<DealPipeline {...mockProps} />);
     expect(container).toBeInTheDocument();
   });
 });
