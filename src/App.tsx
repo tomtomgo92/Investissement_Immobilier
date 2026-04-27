@@ -288,6 +288,23 @@ export default function App() {
     setPendingImportData(null);
   };
 
+  const handleAutoPrice = () => {
+    if (!activeSim || !calculations) return;
+    const tOcc = activeSim.data.tauxOccupation ?? 65;
+    const fConc = activeSim.data.fraisConciergerie ?? 20;
+    
+    // Break-even formula: 
+    // Revenue - Credit - FixCharges - (Revenue * fConc) = 0
+    // Revenue * (1 - fConc) = Credit + FixCharges
+    const fixCharges = activeSim.data.charges.reduce((acc: number, c: any) => acc + c.value, 0);
+    const creditAnnee = calculations.mCredit * 12;
+
+    const denominator = 365 * (tOcc / 100) * (1 - (fConc / 100));
+    const minPrice = denominator > 0 ? (creditAnnee + fixCharges) / denominator : 0;
+    
+    updateData('prixNuitee', Math.ceil(minPrice));
+  };
+
   if (!activeSim || !calculations) return null;
 
   return (
@@ -604,7 +621,23 @@ export default function App() {
                   <div className="space-y-4 pr-1">
                     {activeSim.data.typeLocation === 'courte_duree' ? (
                       <div className="space-y-6">
-                        <PremiumInput label="Prix par nuitée (ADR)" value={activeSim.data.prixNuitee ?? 85} onChange={(v) => updateData('prixNuitee', Number(v))} suffix="€" />
+                        <PremiumInput 
+                          label={
+                            <span className="flex items-center gap-2">
+                              Prix par nuitée (ADR)
+                              <button 
+                                onClick={handleAutoPrice}
+                                className="bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/40 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded transition-colors"
+                                title="Calculer automatiquement le prix minimum pour être à l'équilibre (Cashflow = 0)"
+                              >
+                                Auto
+                              </button>
+                            </span>
+                          } 
+                          value={activeSim.data.prixNuitee ?? 85} 
+                          onChange={(v) => updateData('prixNuitee', Number(v))} 
+                          suffix="€" 
+                        />
                         <PremiumInput label={<span>Taux d'occupation estimé <span className="text-[10px] text-slate-400 font-normal ml-1">(environ {Math.round(365 * ((activeSim.data.tauxOccupation ?? 65) / 100))}j)</span></span>} value={activeSim.data.tauxOccupation ?? 65} onChange={(v) => updateData('tauxOccupation', Number(v))} suffix="%" />
                         <PremiumInput label="Frais Plateforme / Conciergerie" value={activeSim.data.fraisConciergerie ?? 20} onChange={(v) => updateData('fraisConciergerie', Number(v))} suffix="%" />
                       </div>
