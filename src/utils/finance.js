@@ -525,11 +525,22 @@ export const calculateResults = (d) => {
 };
 
 export const updateSimulationData = (data, field, value) => {
-  const numericValue = parseFloat(value) || 0;
-  const newData = { ...data, [field]: numericValue };
+  const stringFields = ['typeLocation', 'regimeFiscal', 'name', 'codePostal'];
+  let finalValue = value;
+
+  if (!stringFields.includes(field)) {
+    finalValue = parseFloat(value) || 0;
+  }
+
+  const newData = { ...data, [field]: finalValue };
 
   if (field === 'prixAchat') {
-    newData.fraisNotaire = calculateNotaryFee(numericValue);
+    newData.fraisNotaire = calculateNotaryFee(finalValue);
+  }
+
+  // Si on change le type de location, on force le mode auto pour réévaluer le régime fiscal
+  if (field === 'typeLocation') {
+    newData.regimeFiscal = 'auto';
   }
 
   return newData;
