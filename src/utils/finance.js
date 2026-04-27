@@ -9,6 +9,8 @@ export const INITIAL_CHARGES = [
   { id: crypto.randomUUID(), name: 'Comptabilité', value: 289 },
 ];
 
+export const getLoyersArr = (loyers) => Array.isArray(loyers) ? loyers : (loyers ? [Number(loyers)] : []);
+
 export const INITIAL_DATA = {
   // Property & Loan
   prixAchat: 92000, travaux: 20000, fraisNotaire: 7360, apport: 15000,
@@ -281,7 +283,7 @@ export const calculatePipelineMetrics = (d) => {
     const fraisConciergerieAn = recetteAnnuelle * (fConc / 100);
     totalChargesAnnuelles += fraisConciergerieAn;
   } else {
-    recetteMensuelleBrute = (d.loyers || []).reduce((acc, curr) => acc + curr, 0);
+    recetteMensuelleBrute = getLoyersArr(d.loyers).reduce((acc, curr) => acc + curr, 0);
     const recetteMensuelleRéelle = recetteMensuelleBrute * (1 - (d.vacanceLocative / 100));
     recetteAnnuelle = recetteMensuelleRéelle * 12;
   }
@@ -365,7 +367,7 @@ export const calculateResults = (d) => {
     const fraisConciergerieAn = recetteAnnuelle * (fConc / 100);
     totalChargesAnnuelles += fraisConciergerieAn;
   } else {
-    recetteMensuelleBrute = (d.loyers || []).reduce((acc, curr) => acc + curr, 0);
+    recetteMensuelleBrute = getLoyersArr(d.loyers).reduce((acc, curr) => acc + curr, 0);
     recetteMensuelleRéelle = recetteMensuelleBrute * (1 - (d.vacanceLocative / 100));
     recetteAnnuelle = recetteMensuelleRéelle * 12;
   }

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
-import { INITIAL_DATA, INITIAL_CHARGES, updateSimulationData as updateSimDataUtil, autoEstimateCharges } from '../utils/finance';
+import { INITIAL_DATA, INITIAL_CHARGES, updateSimulationData as updateSimDataUtil, autoEstimateCharges, getLoyersArr } from '../utils/finance';
 import { decodeShareCode } from '../utils/share';
 
 export interface Simulation {
@@ -110,7 +110,7 @@ export const useSimulationStore = create<SimulationState>()(
             applyAutoEstimateCharges: () => set((state) => ({
                 simulations: state.simulations.map(sim => {
                     if (sim.id !== state.activeSimId) return sim;
-                    const loyerMensuelTotal = (sim.data.loyers || []).reduce((acc: number, val: number) => acc + val, 0);
+                    const loyerMensuelTotal = getLoyersArr(sim.data.loyers).reduce((acc: number, val: number) => acc + val, 0);
                     const estimatedCharges = autoEstimateCharges(sim.data.prixAchat, loyerMensuelTotal);
                     return {
                         ...sim,
