@@ -305,6 +305,30 @@ export default function App() {
     updateData('prixNuitee', Math.ceil(minPrice));
   };
 
+  const handleAutoLoyers = () => {
+    if (!activeSim || !calculations) return;
+    const vacance = activeSim.data.vacanceLocative ?? 0;
+    const nbColocs = activeSim.data.nbColocs;
+    if (nbColocs === 0) return;
+
+    const fixCharges = activeSim.data.charges.reduce((acc: number, c: any) => acc + c.value, 0);
+    const creditAnnee = calculations.mCredit * 12;
+
+    // Break-even formula for long-term: 
+    // AnnualRevenueReal - Credit - FixCharges = 0
+    // AnnualRevenueReal = AnnualRevenueBrute * (1 - vacance/100)
+    const targetRevenueAnnuelBrut = (creditAnnee + fixCharges) / (1 - (vacance / 100));
+    
+    // Monthly rent per room needed
+    const targetRentPerRoom = (targetRevenueAnnuelBrut / 12) / nbColocs;
+    
+    // We round up to be safe
+    const roundedRent = Math.ceil(targetRentPerRoom);
+    
+    const newLoyers = Array(nbColocs).fill(roundedRent);
+    updateData('loyers', newLoyers);
+  };
+
   if (!activeSim || !calculations) return null;
 
   return (
@@ -611,9 +635,18 @@ export default function App() {
                   className="flex-1"
                   rightElement={
                     activeSim.data.typeLocation !== 'courte_duree' && (
-                      <div className="flex items-center gap-1 bg-slate-50 dark:bg-white/[0.05] p-1 rounded-xl border border-slate-100 dark:border-white/[0.08]">
-                        <button aria-label="Diminuer le nombre de colocataires" onClick={() => { const c = Math.max(0, activeSim.data.nbColocs - 1); setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: s.data.loyers.slice(0, c) } } : s)); }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all text-slate-500">-</button>
-                        <button aria-label="Augmenter le nombre de colocataires" onClick={() => { const c = activeSim.data.nbColocs + 1; setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: [...s.data.loyers, 0] } } : s)); }} className="w-8 h-8 flex items-center justify-center rounded-lg text-indigo-600 dark:text-indigo-400 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all">+</button>
+                      <div className="flex items-center gap-3">
+                        <button 
+                          onClick={handleAutoLoyers}
+                          className="bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/40 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded transition-colors"
+                          title="Calculer automatiquement le loyer minimum pour être à l'équilibre (Cashflow = 0)"
+                        >
+                          Auto
+                        </button>
+                        <div className="flex items-center gap-1 bg-slate-50 dark:bg-white/[0.05] p-1 rounded-xl border border-slate-100 dark:border-white/[0.08]">
+                          <button aria-label="Diminuer le nombre de colocataires" onClick={() => { const c = Math.max(0, activeSim.data.nbColocs - 1); setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: s.data.loyers.slice(0, c) } } : s)); }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all text-slate-500">-</button>
+                          <button aria-label="Augmenter le nombre de colocataires" onClick={() => { const c = activeSim.data.nbColocs + 1; setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: [...s.data.loyers, 0] } } : s)); }} className="w-8 h-8 flex items-center justify-center rounded-lg text-indigo-600 dark:text-indigo-400 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all">+</button>
+                        </div>
                       </div>
                     )
                   }
