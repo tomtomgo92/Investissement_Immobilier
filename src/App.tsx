@@ -91,6 +91,7 @@ export default function App() {
   // URL Scraping state
   const [importUrl, setImportUrl] = useState('');
   const [isImporting, setIsImporting] = useState(false);
+  const [pendingImportData, setPendingImportData] = useState<any>(null);
 
   // Market Intelligence state
   const [marketData, setMarketData] = useState<any>(null);
@@ -243,40 +244,46 @@ export default function App() {
     setIsImporting(true);
     try {
       const data = await scrapeUrl(importUrl);
-
-      // Update active simulation with scraped data
-      setSimulations(p => p.map(s => {
-        if (s.id !== activeSimId) return s;
-
-        let newData = {
-          ...s.data,
-          prixAchat: data.prixAchat,
-          surface: data.surface || s.data.surface,
-          codePostal: data.codePostal || s.data.codePostal
-        };
-        // Estimate charges based on new price and current rents
-        const pNuit = s.data.prixNuitee ?? 85;
-        const tOcc = s.data.tauxOccupation ?? 65;
-        const loyerMensuelTotal = s.data.typeLocation === 'courte_duree'
-             ? (pNuit * 365 * (tOcc / 100)) / 12
-             : s.data.loyers.reduce((acc: number, val: number) => acc + val, 0);
-        newData.charges = autoEstimateCharges(data.prixAchat, loyerMensuelTotal);
-
-        // Also update notaire fees
-        newData.fraisNotaire = Math.round(data.prixAchat * 0.08);
-
-        return {
-          ...s,
-          name: data.titre || s.name,
-          data: newData
-        };
-      }));
-      setImportUrl('');
+      setPendingImportData(data);
     } catch (err: any) {
-      alert("Erreur lors de l'import : " + err.message);
+      alert(err.message);
     } finally {
       setIsImporting(false);
     }
+  };
+
+  const confirmImport = () => {
+    if (!pendingImportData) return;
+    
+    setSimulations(p => p.map(s => {
+      if (s.id !== activeSimId) return s;
+
+      let newData = {
+        ...s.data,
+        prixAchat: pendingImportData.prixAchat,
+        surface: pendingImportData.surface || s.data.surface,
+        codePostal: pendingImportData.codePostal || s.data.codePostal
+      };
+      // Estimate charges based on new price and current rents
+      const pNuit = s.data.prixNuitee ?? 85;
+      const tOcc = s.data.tauxOccupation ?? 65;
+      const loyerMensuelTotal = s.data.typeLocation === 'courte_duree'
+           ? (pNuit * 365 * (tOcc / 100)) / 12
+           : s.data.loyers.reduce((acc: number, val: number) => acc + val, 0);
+      newData.charges = autoEstimateCharges(pendingImportData.prixAchat, loyerMensuelTotal);
+
+      // Also update notaire fees
+      newData.fraisNotaire = Math.round(pendingImportData.prixAchat * 0.08);
+
+      return {
+        ...s,
+        name: pendingImportData.titre || s.name,
+        data: newData
+      };
+    }));
+    
+    setImportUrl('');
+    setPendingImportData(null);
   };
 
   if (!activeSim || !calculations) return null;
@@ -752,6 +759,76 @@ export default function App() {
       {isGenerating && (
         <div className="fixed left-[-9999px] top-0 pointer-events-none">
           <PdfReport ref={reportRef} activeSim={activeSim} calculations={calculations} />
+        </div>
+      )}
+
+      {/* IMPORT CONFIRMATION MODAL */}
+      {pendingImportData && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Confirmer l'import</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                Vérifiez les données récupérées avant de les appliquer à votre simulation.
+              </p>
+              
+              <div className="space-y-4 mb-8">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Titre de l'annonce</label>
+                  <input
+                    type="text"
+                    value={pendingImportData.titre || ''}
+                    onChange={(e) => setPendingImportData({...pendingImportData, titre: e.target.value})}
+                    className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Prix affiché (€)</label>
+                    <input
+                      type="number"
+                      value={pendingImportData.prixAchat || 0}
+                      onChange={(e) => setPendingImportData({...pendingImportData, prixAchat: Number(e.target.value)})}
+                      className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Surface (m²)</label>
+                    <input
+                      type="number"
+                      value={pendingImportData.surface || 0}
+                      onChange={(e) => setPendingImportData({...pendingImportData, surface: Number(e.target.value)})}
+                      className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Code Postal</label>
+                  <input
+                    type="text"
+                    value={pendingImportData.codePostal || ''}
+                    onChange={(e) => setPendingImportData({...pendingImportData, codePostal: e.target.value})}
+                    className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setPendingImportData(null); setImportUrl(''); }}
+                  className="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={confirmImport}
+                  className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition-colors shadow-sm"
+                >
+                  Valider l'import
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
