@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { Target, TrendingUp, Handshake, AlertCircle } from 'lucide-react';
 import DashboardSection from './GlassSection';
 import PremiumInput from './PremiumInput';
-import { calculateResults } from '../utils/finance';
+import { calculateResults, getLoyersArr } from '../utils/finance';
 import { formatE } from '../utils/formatters';
 
 interface ReverseCalculatorProps {
@@ -68,7 +68,7 @@ export default function ReverseCalculator({ data, onApplyMaxPrice, onApplyMinRen
 
        for (let i = 0; i < 50; i++) {
           let midRent = (minRent + maxRent) / 2;
-          testSim.loyers = data.loyers.map(() => midRent);
+          testSim.loyers = getLoyersArr(data.loyers).map(() => midRent);
 
           const cf = evaluateCashflow(testSim);
 
