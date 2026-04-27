@@ -18,7 +18,7 @@ export default function Toggle({ active, onToggle, ariaLabel, className }: Toggl
             onClick={onToggle}
             className={cn(
                 "relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900",
-                active ? "bg-indigo-600 dark:bg-indigo-500" : "bg-slate-200 dark:bg-slate-700",
+                active ? "bg-indigo-600 dark:bg-indigo-500" : "bg-slate-200 dark:bg-white/[0.08]",
                 className
             )}
         >

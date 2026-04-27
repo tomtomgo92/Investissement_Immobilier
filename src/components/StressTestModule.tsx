@@ -34,8 +34,8 @@ export default function StressTestModule({ data, formatE }: StressTestModuleProp
     return (
       <div className={cn(
         "p-5 rounded-xl border flex flex-col gap-4 transition-all duration-300 hover:shadow-sm",
-        "bg-white/50 dark:bg-slate-900/30 backdrop-blur-md relative overflow-hidden",
-        highlight ? "border-indigo-200/60 dark:border-indigo-800/60" : "border-slate-200/60 dark:border-slate-800/60"
+        "bg-white/50 dark:bg-[#0B0F19]/30 backdrop-blur-md relative overflow-hidden",
+        highlight ? "border-indigo-200/60 dark:border-indigo-800/60" : "border-slate-200/60 dark:border-white/[0.05]/60"
       )}>
         {highlight && (
           <div className="absolute -right-4 -top-4 w-24 h-24 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-full blur-2xl pointer-events-none" />
@@ -76,8 +76,8 @@ export default function StressTestModule({ data, formatE }: StressTestModuleProp
   };
 
   return (
-    <div className="bg-white/50 dark:bg-slate-900/30 backdrop-blur-md rounded-2xl border border-slate-200/60 dark:border-slate-800/60 p-6 space-y-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-      <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800/80 pb-4">
+    <div className="bg-white/50 dark:bg-[#0B0F19]/30 backdrop-blur-md rounded-2xl border border-slate-200/60 dark:border-white/[0.05]/60 p-6 space-y-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+      <div className="flex items-center gap-3 border-b border-slate-100 dark:border-white/[0.05]/80 pb-4">
         <ShieldAlert size={18} className="text-amber-500" />
         <div>
            <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-800 dark:text-slate-200">Stress Test</h3>

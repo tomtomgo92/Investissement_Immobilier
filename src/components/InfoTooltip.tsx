@@ -17,14 +17,14 @@ export default function InfoTooltip({ text, id, className }: InfoTooltipProps) {
         role="tooltip"
         className={cn(
           "absolute right-0 bottom-full mb-2 px-3 py-2 w-48 z-50 pointer-events-none",
-          "bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 text-[10px] font-medium text-center leading-relaxed",
-          "rounded-xl shadow-xl border border-white/10 dark:border-slate-900/10",
+          "bg-slate-800 dark:bg-white text-white dark:text-slate-900 text-[10px] font-medium text-center leading-relaxed",
+          "rounded-xl shadow-xl border border-white/10 dark:border-white/10",
           "opacity-0 group-hover:opacity-100 transition-opacity duration-200"
         )}
       >
         {text}
         {/* Subtle arrow */}
-        <div className="absolute -bottom-1 right-2 w-2 h-2 rotate-45 bg-slate-800 dark:bg-slate-100" />
+        <div className="absolute -bottom-1 right-2 w-2 h-2 rotate-45 bg-slate-800 dark:bg-white" />
       </div>
     </div>
   );

@@ -107,7 +107,7 @@ export default function ReverseCalculator({ data, onApplyMaxPrice, onApplyMinRen
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
           {/* Max Price Result */}
-          <div className="p-4 rounded-xl border border-slate-200/60 dark:border-slate-800/60 bg-white/50 dark:bg-slate-900/30 backdrop-blur-md relative overflow-hidden group transition-all duration-300 hover:shadow-sm">
+          <div className="p-4 rounded-xl border border-slate-200/60 dark:border-white/[0.05]/60 bg-white/50 dark:bg-[#0B0F19]/30 backdrop-blur-md relative overflow-hidden group transition-all duration-300 hover:shadow-sm">
             <div className="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
               <Handshake size={48} className="text-slate-500" />
             </div>
@@ -117,7 +117,7 @@ export default function ReverseCalculator({ data, onApplyMaxPrice, onApplyMinRen
                  <p className="text-xl font-semibold tracking-tight text-slate-800 dark:text-slate-100">{formatE(maxPrice)}</p>
                  <button
                    onClick={() => onApplyMaxPrice(maxPrice)}
-                   className="mt-3 text-[10px] bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 px-3 py-1.5 rounded-md font-medium uppercase tracking-widest transition-colors z-10 relative cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-900"
+                   className="mt-3 text-[10px] bg-slate-100 dark:bg-white/[0.03] hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 px-3 py-1.5 rounded-md font-medium uppercase tracking-widest transition-colors z-10 relative cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-900"
                  >
                    Appliquer ce prix
                  </button>
@@ -131,7 +131,7 @@ export default function ReverseCalculator({ data, onApplyMaxPrice, onApplyMinRen
           </div>
 
           {/* Min Rent Result */}
-          <div className="p-4 rounded-xl border border-slate-200/60 dark:border-slate-800/60 bg-white/50 dark:bg-slate-900/30 backdrop-blur-md relative overflow-hidden group transition-all duration-300 hover:shadow-sm">
+          <div className="p-4 rounded-xl border border-slate-200/60 dark:border-white/[0.05]/60 bg-white/50 dark:bg-[#0B0F19]/30 backdrop-blur-md relative overflow-hidden group transition-all duration-300 hover:shadow-sm">
             <div className="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
                <TrendingUp size={48} className="text-slate-500" />
             </div>
@@ -142,7 +142,7 @@ export default function ReverseCalculator({ data, onApplyMaxPrice, onApplyMinRen
             </div>
              <button
                onClick={() => minRent && onApplyMinRent(minRent)}
-               className="mt-3 text-[10px] bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 px-3 py-1.5 rounded-md font-medium uppercase tracking-widest transition-colors z-10 relative cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-900"
+               className="mt-3 text-[10px] bg-slate-100 dark:bg-white/[0.03] hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 px-3 py-1.5 rounded-md font-medium uppercase tracking-widest transition-colors z-10 relative cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-900"
              >
                Appliquer ces loyers
              </button>

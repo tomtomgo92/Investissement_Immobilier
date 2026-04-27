@@ -19,8 +19,8 @@ export default function CalculationBreakdown({ data, calculations, formatE }: Ca
   const isRegimeOptimal = appliedRegime === bestRegime;
 
   return (
-    <div className="bg-white/50 dark:bg-slate-900/30 backdrop-blur-md rounded-2xl border border-slate-200/60 dark:border-slate-800/60 p-6 space-y-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-      <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800/80">
+    <div className="bg-white/50 dark:bg-[#0B0F19]/30 backdrop-blur-md rounded-2xl border border-slate-200/60 dark:border-white/[0.05]/60 p-6 space-y-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+      <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/[0.05]/80">
         <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-800 dark:text-slate-200">
           Synthèse Financière
         </h3>
@@ -48,7 +48,7 @@ export default function CalculationBreakdown({ data, calculations, formatE }: Ca
               <span>Vacance ({vacanceLocative}%)</span>
               <span>-{formatE(recetteMensuelleBrute * (vacanceLocative / 100))}</span>
             </div>
-            <div className="pt-2 mt-1 border-t border-slate-100 dark:border-slate-800/80 flex justify-between items-center text-xs font-medium text-slate-800 dark:text-slate-200">
+            <div className="pt-2 mt-1 border-t border-slate-100 dark:border-white/[0.05]/80 flex justify-between items-center text-xs font-medium text-slate-800 dark:text-slate-200">
               <span>Réel</span>
               <span className="text-emerald-600 dark:text-emerald-400">{formatE(recetteMensuelleRéelle)}</span>
             </div>
@@ -67,7 +67,7 @@ export default function CalculationBreakdown({ data, calculations, formatE }: Ca
               <span>Charges estimées</span>
               <span>-{formatE(totalChargesAnnuelles / 12)}</span>
             </div>
-            <div className="pt-2 mt-1 border-t border-slate-100 dark:border-slate-800/80 flex justify-between items-center text-xs font-medium text-slate-800 dark:text-slate-200">
+            <div className="pt-2 mt-1 border-t border-slate-100 dark:border-white/[0.05]/80 flex justify-between items-center text-xs font-medium text-slate-800 dark:text-slate-200">
               <span>Total Dépenses</span>
               <span className="text-rose-600 dark:text-rose-400">-{formatE(mCredit + (totalChargesAnnuelles / 12))}</span>
             </div>
@@ -86,7 +86,7 @@ export default function CalculationBreakdown({ data, calculations, formatE }: Ca
               <span>Provision Mensuelle</span>
               <span>-{formatE(impots / 12)}</span>
             </div>
-            <div className="pt-2 mt-1 border-t border-slate-100 dark:border-slate-800/80 flex justify-between items-center text-xs font-medium text-slate-800 dark:text-slate-200">
+            <div className="pt-2 mt-1 border-t border-slate-100 dark:border-white/[0.05]/80 flex justify-between items-center text-xs font-medium text-slate-800 dark:text-slate-200">
                <span>Poids Fiscal</span>
                <span className="text-slate-500">{((impots / Math.max(1, (recetteMensuelleRéelle * 12))) * 100).toFixed(1)}%</span>
             </div>
@@ -94,7 +94,7 @@ export default function CalculationBreakdown({ data, calculations, formatE }: Ca
         </div>
 
         {/* Résultat */}
-        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 flex flex-col justify-center border border-slate-100 dark:border-slate-700/50">
+        <div className="bg-slate-50 dark:bg-white/[0.03] rounded-xl p-4 flex flex-col justify-center border border-slate-100 dark:border-white/[0.08]/50">
           <span className="text-[10px] font-medium uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Cashflow Net</span>
           <div className="flex items-baseline gap-1.5">
             <span className={cn(

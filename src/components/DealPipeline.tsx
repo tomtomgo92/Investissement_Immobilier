@@ -60,7 +60,7 @@ export default function DealPipeline({ simulations, setSimulations, setActiveSim
   };
 
   return (
-    <div className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-slate-800/50 p-8 shadow-[0_2px_10px_rgba(0,0,0,0.02)] animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="bg-white/60 dark:bg-white/[0.02] backdrop-blur-xl rounded-2xl border border-white/50 dark:border-white/[0.05] p-8 shadow-[0_2px_10px_rgba(0,0,0,0.02)] animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-10">
         <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-3">
           <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl">
@@ -76,14 +76,14 @@ export default function DealPipeline({ simulations, setSimulations, setActiveSim
           const columnSims = pipelineData.filter(s => s.status === col.id);
 
           return (
-            <div key={col.id} className="flex-1 min-w-[300px] snap-start bg-slate-50/50 dark:bg-slate-800/30 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col overflow-hidden">
+            <div key={col.id} className="flex-1 min-w-[300px] snap-start bg-slate-50/50 dark:bg-white/[0.02] rounded-2xl border border-slate-100 dark:border-white/[0.05] flex flex-col overflow-hidden">
               {/* Column Header */}
-              <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white/50 dark:bg-slate-800/80 backdrop-blur-sm">
+              <div className="p-4 border-b border-slate-100 dark:border-white/[0.05] flex items-center justify-between bg-white/50 dark:bg-white/[0.04] backdrop-blur-sm">
                 <div className="flex items-center gap-2 text-slate-800 dark:text-white font-bold text-sm">
                   <span className="text-indigo-500">{col.icon}</span>
                   {col.label}
                 </div>
-                <span className="text-[10px] font-bold text-slate-500 bg-slate-200/50 dark:bg-slate-700 px-2.5 py-1 rounded-full">
+                <span className="text-[10px] font-bold text-slate-500 bg-slate-200/50 dark:bg-white/[0.08] px-2.5 py-1 rounded-full">
                   {columnSims.length}
                 </span>
               </div>
@@ -94,7 +94,7 @@ export default function DealPipeline({ simulations, setSimulations, setActiveSim
                   <div className="text-center text-xs font-medium text-slate-400 mt-6 px-4">Aucun projet dans cette phase</div>
                 ) : (
                   columnSims.map(sim => (
-                    <div key={sim.id} className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200/60 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 group">
+                    <div key={sim.id} className="bg-white dark:bg-[#0B0F19] p-4 rounded-xl border border-slate-200/60 dark:border-white/[0.08] shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 group">
                       <div className="flex justify-between items-start mb-4">
                         <button onClick={() => openSimulation(sim.id)} className="font-bold text-sm text-slate-800 dark:text-white hover:text-indigo-600 transition-colors text-left pr-2 truncate">
                           {sim.name}
@@ -126,7 +126,7 @@ export default function DealPipeline({ simulations, setSimulations, setActiveSim
                       </div>
 
                       {/* Card Actions (Move buttons) */}
-                      <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-white/[0.05]">
                         <button
                           aria-label="Déplacer à l'étape précédente"
                           onClick={() => changeStatus(sim.id, colIndex, -1)}

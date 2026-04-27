@@ -40,7 +40,7 @@ export default function PremiumInput({
                     onChange={(e) => onChange(e.target.value)}
                     aria-describedby={tooltip ? tooltipId : undefined}
                     className={cn(
-                        "w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700",
+                        "w-full bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08]",
                         "rounded-lg px-4 py-2.5 text-sm font-semibold text-slate-900 dark:text-white",
                         "transition-all duration-200 outline-none shadow-sm",
                         "focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800",

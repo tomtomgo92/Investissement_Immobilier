@@ -267,7 +267,7 @@ export default function App() {
     <div className="min-h-screen flex flex-col font-sans transition-colors duration-300">
 
       {/* Header Bar */}
-      <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 px-6 h-16 flex items-center justify-between sticky top-0 z-50">
+      <header className="bg-white/80 dark:bg-[#0B0F19]/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-white/[0.05] px-6 h-16 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
             <div className="bg-indigo-600 text-white p-2 rounded-xl shadow-sm">
@@ -281,14 +281,14 @@ export default function App() {
             />
           </div>
 
-          <nav role="tablist" aria-label="Projets de simulation" className="hidden md:flex bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-xl">
+          <nav role="tablist" aria-label="Projets de simulation" className="hidden md:flex bg-slate-100/50 dark:bg-white/[0.03] p-1 rounded-xl">
             {simulations.map(sim => (
               <button
                 key={sim.id}
                 role="tab"
                 aria-selected={activeSimId === sim.id}
                 onClick={() => setActiveSimId(sim.id)}
-                className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-800 ${activeSimId === sim.id ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-800 ${activeSimId === sim.id ? 'bg-white dark:bg-white/[0.08] text-indigo-600 dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
               >
                 {sim.name}
               </button>
@@ -311,22 +311,22 @@ export default function App() {
           >
             {isDarkMode ? <Eye size={18} /> : <EyeOff size={18} />}
           </button>
-          <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 mx-2" />
+          <div className="h-4 w-px bg-slate-200 dark:bg-white/[0.05] mx-2" />
           <button
             onClick={() => setViewMode(viewMode === 'pipeline' ? 'dashboard' : 'pipeline')}
-            className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'pipeline' ? 'bg-indigo-50 border-indigo-200 text-indigo-600 dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-300 shadow-sm' : 'border-slate-200/50 dark:border-slate-800/50 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+            className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'pipeline' ? 'bg-indigo-50 border-indigo-200 text-indigo-600 dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-300 shadow-sm' : 'border-slate-200/50 dark:border-white/[0.05] text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
           >
             <BarChart3 size={14} /> Pipeline
           </button>
           <button
             onClick={() => setViewMode(viewMode === 'comparator' ? 'dashboard' : 'comparator')}
-            className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'comparator' ? 'bg-indigo-50 border-indigo-200 text-indigo-600 dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-300 shadow-sm' : 'border-slate-200/50 dark:border-slate-800/50 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+            className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'comparator' ? 'bg-indigo-50 border-indigo-200 text-indigo-600 dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-300 shadow-sm' : 'border-slate-200/50 dark:border-white/[0.05] text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
           >
             <Scale size={14} /> Comparer
           </button>
           <button
             onClick={shareSimulation}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-200/50 dark:border-slate-800/50 rounded-xl text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200/50 dark:border-white/[0.05] rounded-xl text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
           >
             <Share2 size={14} /> Partager
           </button>
@@ -366,7 +366,7 @@ export default function App() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <HeroKPI label="Cashflow Net" value={formatE(calculations.cashflowM)} color={calculations.cashflowM >= 0 ? "emerald" : "rose"} icon={<ArrowRightLeft />} highlight />
-              <div className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-slate-800/50 p-6 shadow-sm">
+              <div className="bg-white/60 dark:bg-white/[0.02] backdrop-blur-xl rounded-2xl border border-white/50 dark:border-white/[0.05] p-6 shadow-sm">
                 <BankabilityIndicator bankability={calculations.bankability} />
               </div>
             </div>
@@ -411,7 +411,7 @@ export default function App() {
         ) : (
           <>
             {/* URL Import Banner */}
-            <div className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-white/50 dark:border-slate-800/50 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+            <div className="bg-white/60 dark:bg-white/[0.02] backdrop-blur-xl border border-white/50 dark:border-white/[0.05] rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
               <div className="flex items-center gap-4">
                 <div className="bg-indigo-50 dark:bg-indigo-900/30 p-3 rounded-xl text-indigo-600 dark:text-indigo-400">
                   <DownloadCloud size={20} />
@@ -421,7 +421,7 @@ export default function App() {
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Collez un lien Leboncoin ou SeLoger pour pré-remplir l'analyse.</p>
                 </div>
               </div>
-              <div className="flex w-full sm:w-auto gap-2 bg-slate-50 dark:bg-slate-800 p-1 rounded-xl border border-slate-100 dark:border-slate-700">
+              <div className="flex w-full sm:w-auto gap-2 bg-slate-50 dark:bg-white/[0.05] p-1 rounded-xl border border-slate-100 dark:border-white/[0.08]">
                 <input
                   type="url"
                   placeholder="https://www.leboncoin.fr/ad/..."
@@ -457,7 +457,7 @@ export default function App() {
                   <PremiumInput label="Prix d'achat" value={activeSim.data.prixAchat} onChange={(v) => updateData('prixAchat', Number(v))} tooltip="Prix hors frais d'agence" />
                   <PremiumInput label="Travaux" value={activeSim.data.travaux} onChange={(v) => updateData('travaux', Number(v))} tooltip="Rénovation et ameublement" />
                   <PremiumInput label="Frais Notaire" value={activeSim.data.fraisNotaire} onChange={(v) => updateData('fraisNotaire', Number(v))} tooltip="Estimation automatique à 8%" />
-                  <div className="mt-6 p-5 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                  <div className="mt-6 p-5 bg-slate-50 dark:bg-white/[0.03] rounded-xl border border-slate-100 dark:border-white/[0.05] flex justify-between items-center">
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Coût Total Projet</span>
                     <span className="text-xl font-bold text-slate-800 dark:text-white">{formatE(calculations.investTotal)}</span>
                   </div>
@@ -469,7 +469,7 @@ export default function App() {
                     <PremiumInput label="Taux %" value={activeSim.data.tauxInteret} onChange={(v) => updateData('tauxInteret', Number(v))} suffix="%" />
                     <PremiumInput label="Durée" value={activeSim.data.dureeCredit} onChange={(v) => updateData('dureeCredit', Number(v))} suffix="Ans" />
                   </div>
-                  <div className="pt-6 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 mt-2">
+                  <div className="pt-6 flex items-center justify-between border-t border-slate-100 dark:border-white/[0.05] mt-2">
                     <div className="flex items-center gap-3">
                       <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Auto-Calcul</span>
                       <Toggle active={activeSim.data.autoCredit} ariaLabel="Auto-calcul de la mensualité de crédit" onToggle={() => setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, autoCredit: !s.data.autoCredit } } : s))} />
@@ -487,7 +487,7 @@ export default function App() {
                      <PremiumInput label="Revenus Foyer" value={activeSim.data.revenusFoyer} onChange={(v) => updateData('revenusFoyer', Number(v))} tooltip="Revenus nets mensuels avant impôt" />
                      <PremiumInput label="Charges Actuelles" value={activeSim.data.chargesFoyer} onChange={(v) => updateData('chargesFoyer', Number(v))} tooltip="Crédits en cours + Loyer RP" />
                   </div>
-                  <div className="pt-6 mt-4 border-t border-slate-100 dark:border-slate-800">
+                  <div className="pt-6 mt-4 border-t border-slate-100 dark:border-white/[0.05]">
                     <BankabilityIndicator bankability={calculations.bankability} />
                   </div>
                 </DashboardSection>
@@ -502,7 +502,7 @@ export default function App() {
                     <select
                       value={activeSim.data.typeLocation || 'meuble_long'}
                       onChange={(e) => updateData('typeLocation', e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all appearance-none"
+                      className="w-full bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.08] rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all appearance-none"
                       style={{ backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right .7rem top 50%', backgroundSize: '.65rem auto' }}
                     >
                       {Object.entries(TYPE_LOCATION_LABELS).map(([k, v]) => (
@@ -518,7 +518,7 @@ export default function App() {
                     <select
                       value={activeSim.data.regimeFiscal || 'auto'}
                       onChange={(e) => updateData('regimeFiscal', e.target.value)}
-                       className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all appearance-none"
+                       className="w-full bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.08] rounded-xl px-4 py-3 text-xs font-bold text-slate-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all appearance-none"
                        style={{ backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right .7rem top 50%', backgroundSize: '.65rem auto' }}
                     >
                       {Object.entries(REGIME_LABELS).map(([k, v]) => {
@@ -544,14 +544,14 @@ export default function App() {
                       <label id="tmi-label" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tranche TMI</label>
                       <InfoTooltip text="Votre tranche marginale d'imposition (0, 11, 30, 41, 45%)" />
                     </div>
-                    <div role="tablist" aria-labelledby="tmi-label" className="flex bg-slate-50 dark:bg-slate-800/50 p-1 rounded-xl gap-1 border border-slate-100 dark:border-slate-700">
+                    <div role="tablist" aria-labelledby="tmi-label" className="flex bg-slate-50 dark:bg-white/[0.03] p-1 rounded-xl gap-1 border border-slate-100 dark:border-white/[0.08]">
                       {TMI_OPTIONS.map(t => (
                         <button
                           key={t}
                           role="tab"
                           aria-selected={activeSim.data.tmi === t}
                           onClick={() => updateData('tmi', t)}
-                          className={`flex-1 py-2.5 rounded-lg text-[11px] font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-800 ${activeSim.data.tmi === t ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                          className={`flex-1 py-2.5 rounded-lg text-[11px] font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-800 ${activeSim.data.tmi === t ? 'bg-white dark:bg-white/[0.08] text-indigo-600 dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
                         >
                           {t}%
                         </button>
@@ -593,7 +593,7 @@ export default function App() {
                               value={c.value}
                               aria-label={`Valeur de la charge ${c.name}`}
                               onChange={(e) => updateCharge(c.id, 'value', Number(e.target.value))}
-                              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-sm font-bold text-slate-800 dark:text-white pr-8 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                              className="w-full bg-slate-50 dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] rounded-xl px-4 py-2 text-sm font-bold text-slate-800 dark:text-white pr-8 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
                             />
                             <span aria-hidden="true" className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-400 pointer-events-none">€</span>
                           </div>
@@ -613,7 +613,7 @@ export default function App() {
                   icon={<Users size={18} className="text-slate-400" />}
                   className="flex-1"
                   rightElement={
-                    <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800 p-1 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <div className="flex items-center gap-1 bg-slate-50 dark:bg-white/[0.05] p-1 rounded-xl border border-slate-100 dark:border-white/[0.08]">
                       <button aria-label="Diminuer le nombre de colocataires" onClick={() => { const c = Math.max(0, activeSim.data.nbColocs - 1); setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: s.data.loyers.slice(0, c) } } : s)); }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all text-slate-500">-</button>
                       <button aria-label="Augmenter le nombre de colocataires" onClick={() => { const c = activeSim.data.nbColocs + 1; setSimulations(p => p.map(s => s.id === activeSimId ? { ...s, data: { ...s.data, nbColocs: c, loyers: [...s.data.loyers, 0] } } : s)); }} className="w-8 h-8 flex items-center justify-center rounded-lg text-indigo-600 dark:text-indigo-400 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all">+</button>
                     </div>
@@ -626,7 +626,7 @@ export default function App() {
                     </div>
                     {activeSim.data.loyers.map((l: number, i: number) => (
                       <div key={i} className="flex items-center gap-4 group">
-                        <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-500">{i + 1}</div>
+                        <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-white/[0.05] flex items-center justify-center text-[10px] font-bold text-slate-500">{i + 1}</div>
                         <div className="relative flex-1">
                           <input
                             type="number"
@@ -641,19 +641,19 @@ export default function App() {
                                 return { ...s, data: { ...s.data, loyers: nl } };
                               }));
                             }}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                            className="w-full bg-slate-50 dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] rounded-xl px-4 py-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
                           />
                           <span aria-hidden="true" className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-medium pointer-events-none">€</span>
                         </div>
                       </div>
                     ))}
 
-                    <div className="mt-8 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-3">
+                    <div className="mt-8 p-6 bg-slate-50 dark:bg-white/[0.03] rounded-2xl border border-slate-100 dark:border-white/[0.05] space-y-3">
                       <div className="flex justify-between items-center">
                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Mensuel</span>
                         <span className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">{formatE(calculations.recetteMensuelleBrute)}</span>
                       </div>
-                      <div className="flex justify-between items-center border-t border-slate-200/50 dark:border-slate-700 pt-3">
+                      <div className="flex justify-between items-center border-t border-slate-200/50 dark:border-white/[0.08] pt-3">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Annuel (Estimé)</span>
                         <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{formatE(calculations.recetteAnnuelle)} / an</span>
                       </div>
@@ -688,7 +688,7 @@ export default function App() {
 
             {/* Projection Chart & Amortization Grid */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <section className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl p-8 rounded-2xl border border-white/50 dark:border-slate-800/50 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/5 group">
+                <section className="bg-white/60 dark:bg-white/[0.02] backdrop-blur-xl p-8 rounded-2xl border border-white/50 dark:border-white/[0.05] shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/5 group">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-2 block group-hover:text-indigo-500 transition-colors">Analyse Patrimoniale</span>
@@ -709,7 +709,7 @@ export default function App() {
                   </div>
                 </section>
 
-                <section className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl p-8 rounded-2xl border border-white/50 dark:border-slate-800/50 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/5 group">
+                <section className="bg-white/60 dark:bg-white/[0.02] backdrop-blur-xl p-8 rounded-2xl border border-white/50 dark:border-white/[0.05] shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/5 group">
                     <div className="mb-8">
                         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-2 block group-hover:text-amber-500 transition-colors">Structure Fiscale</span>
                         <h2 className="text-xl font-bold text-slate-800 dark:text-white">Amortissement & Impôts</h2>
@@ -745,7 +745,7 @@ export default function App() {
           </>
         )}
 
-        <footer className="pt-16 pb-12 border-t border-slate-200/50 dark:border-slate-800/50 flex flex-col md:flex-row justify-between items-center gap-6 text-slate-400 text-[10px] uppercase font-bold tracking-[0.2em]">
+        <footer className="pt-16 pb-12 border-t border-slate-200/50 dark:border-white/[0.05] flex flex-col md:flex-row justify-between items-center gap-6 text-slate-400 text-[10px] uppercase font-bold tracking-[0.2em]">
           <div>© 2026 - Simulateur d'Investissement</div>
           <div className="flex gap-8">
             <span className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)] animate-pulse" /> Optimisé</span>

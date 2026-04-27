@@ -41,8 +41,8 @@ export default function HeroKPI({
         },
         slate: {
             text: 'text-slate-600 dark:text-slate-400',
-            bg: 'bg-slate-50 dark:bg-slate-900/10',
-            border: 'border-slate-100 dark:border-slate-800',
+            bg: 'bg-slate-50 dark:bg-[#0B0F19]/10',
+            border: 'border-slate-100 dark:border-white/[0.05]',
             highlight: 'ring-1 ring-slate-500/20'
         }
     };
@@ -52,7 +52,7 @@ export default function HeroKPI({
     return (
         <div className={cn(
             "group relative overflow-hidden rounded-2xl border p-5 transition-all duration-300",
-            "bg-white/40 dark:bg-slate-900/40 backdrop-blur-md",
+            "bg-white/40 dark:bg-white/[0.02] backdrop-blur-md",
             "hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] dark:hover:shadow-none",
             style.border,
             highlight ? style.highlight : ""
