@@ -11,7 +11,7 @@ import {
   TMI_OPTIONS
 } from './utils/finance';
 import { useSimulationStore } from './store/useSimulationStore';
-import { scrapeUrl } from './utils/scraping';
+
 import { encodeShareCode } from './utils/share';
 import { formatE } from './utils/formatters';
 import { getMarketData } from './utils/market';
@@ -88,9 +88,6 @@ export default function App() {
 
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // URL Scraping state
-  const [importUrl, setImportUrl] = useState('');
-  const [isImporting, setIsImporting] = useState(false);
   const [pendingImportData, setPendingImportData] = useState<any>(null);
 
   // Market Intelligence state
@@ -239,17 +236,13 @@ export default function App() {
 
   const toggleDimension = (dim: keyof typeof visibleDimensions) => setVisibleDimensions(p => ({ ...p, [dim]: !p[dim] }));
 
-  const handleImport = async () => {
-    if (!importUrl) return;
-    setIsImporting(true);
-    try {
-      const data = await scrapeUrl(importUrl);
-      setPendingImportData(data);
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setIsImporting(false);
-    }
+  const openSaisieRapide = () => {
+    setPendingImportData({
+      titre: '',
+      prixAchat: activeSim.data.prixAchat || 0,
+      surface: activeSim.data.surface || 0,
+      codePostal: activeSim.data.codePostal || ''
+    });
   };
 
   const confirmImport = () => {
@@ -282,7 +275,6 @@ export default function App() {
       };
     }));
     
-    setImportUrl('');
     setPendingImportData(null);
   };
 
@@ -396,33 +388,23 @@ export default function App() {
           </div>
         ) : (
           <>
-            {/* URL Import Banner */}
+            {/* Saisie Rapide Banner */}
             <div className="bg-white/60 dark:bg-white/[0.02] backdrop-blur-xl border border-white/50 dark:border-white/[0.05] rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
               <div className="flex items-center gap-4">
                 <div className="bg-indigo-50 dark:bg-indigo-900/30 p-3 rounded-xl text-indigo-600 dark:text-indigo-400">
-                  <DownloadCloud size={20} />
+                  <Wand2 size={20} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-800 dark:text-white tracking-tight">Import Magique</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Collez un lien Leboncoin ou SeLoger pour pré-remplir l'analyse.</p>
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-white tracking-tight">Saisie Rapide</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Renseignez rapidement les informations principales d'un bien.</p>
                 </div>
               </div>
-              <div className="flex w-full sm:w-auto gap-2 bg-slate-50 dark:bg-white/[0.05] p-1 rounded-xl border border-slate-100 dark:border-white/[0.08]">
-                <input
-                  type="url"
-                  placeholder="https://www.leboncoin.fr/ad/..."
-                  value={importUrl}
-                  onChange={(e) => setImportUrl(e.target.value)}
-                  className="flex-1 sm:w-64 text-sm bg-transparent border-none px-3 py-2 focus:ring-0 outline-none text-slate-700 dark:text-slate-200 placeholder-slate-400"
-                />
-                <button
-                  onClick={handleImport}
-                  disabled={!importUrl || isImporting}
-                  className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all shadow-sm"
-                >
-                  {isImporting ? <Loader2 size={16} className="animate-spin" /> : "Importer"}
-                </button>
-              </div>
+              <button
+                onClick={openSaisieRapide}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all shadow-sm w-full sm:w-auto"
+              >
+                Saisir un bien
+              </button>
             </div>
 
             {/* KPI Row */}
@@ -767,9 +749,9 @@ export default function App() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6">
-              <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Confirmer l'import</h2>
+              <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Saisie Rapide</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                Vérifiez les données récupérées avant de les appliquer à votre simulation.
+                Renseignez les informations de base du bien pour pré-remplir la simulation.
               </p>
               
               <div className="space-y-4 mb-8">
@@ -815,7 +797,7 @@ export default function App() {
 
               <div className="flex gap-3">
                 <button
-                  onClick={() => { setPendingImportData(null); setImportUrl(''); }}
+                  onClick={() => setPendingImportData(null)}
                   className="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold transition-colors"
                 >
                   Annuler
@@ -824,7 +806,7 @@ export default function App() {
                   onClick={confirmImport}
                   className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition-colors shadow-sm"
                 >
-                  Valider l'import
+                  Appliquer
                 </button>
               </div>
             </div>
