@@ -482,6 +482,48 @@ export default function App() {
                   </div>
                 </DashboardSection>
 
+                <DashboardSection
+                  title="Détail Charges (An)"
+                  icon={<Receipt size={18} className="text-slate-400" />}
+                  className="flex-1"
+                  rightElement={
+                    <div className="flex items-center gap-3">
+                      <button aria-label="Ajouter une charge" onClick={addCharge} className="text-indigo-500 hover:text-indigo-600 transition-colors bg-indigo-50 dark:bg-indigo-900/30 p-1.5 rounded-lg"><Plus size={16} /></button>
+                    </div>
+                  }
+                >
+                  <div className="space-y-4 pr-1">
+                    {activeSim.data.charges.map((c: any) => (
+                      <div key={c.id} className="group relative">
+                        <div className="flex items-center gap-3">
+                          <input
+                            value={c.name}
+                            aria-label={`Nom de la charge ${c.name}`}
+                            onChange={(e) => updateCharge(c.id, 'name', e.target.value)}
+                            className="bg-transparent border-none text-xs font-bold text-slate-500 uppercase tracking-wider p-0 focus:ring-0 flex-1 placeholder-slate-300 outline-none"
+                            placeholder="Nom..."
+                          />
+                          <div className="relative w-32">
+                            <input
+                              type="number"
+                              value={c.value}
+                              aria-label={`Valeur de la charge ${c.name}`}
+                              onChange={(e) => updateCharge(c.id, 'value', Number(e.target.value))}
+                              className="w-full bg-slate-50 dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] rounded-xl px-4 py-2 text-sm font-bold text-slate-800 dark:text-white pr-8 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                            />
+                            <span aria-hidden="true" className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-400 pointer-events-none">€</span>
+                          </div>
+                          <button aria-label={`Supprimer la charge ${c.name}`} onClick={() => removeCharge(c.id)} className="opacity-0 group-hover:opacity-100 text-rose-400 hover:text-rose-600 transition-opacity bg-rose-50 dark:bg-rose-900/30 p-2 rounded-lg">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </DashboardSection>
+              </div>
+
+              <div className="space-y-8 flex flex-col">
                 <DashboardSection title="Banque" icon={<Landmark size={18} className="text-slate-400" />}>
                   <PremiumInput label="Apport Personnel" value={activeSim.data.apport} onChange={(v) => updateData('apport', Number(v))} />
                   <div className="grid grid-cols-2 gap-4">
@@ -584,48 +626,6 @@ export default function App() {
                   )}
                 </DashboardSection>
 
-                <DashboardSection
-                  title="Détail Charges (An)"
-                  icon={<Receipt size={18} className="text-slate-400" />}
-                  className="flex-1"
-                  rightElement={
-                    <div className="flex items-center gap-3">
-                      <button aria-label="Ajouter une charge" onClick={addCharge} className="text-indigo-500 hover:text-indigo-600 transition-colors bg-indigo-50 dark:bg-indigo-900/30 p-1.5 rounded-lg"><Plus size={16} /></button>
-                    </div>
-                  }
-                >
-                  <div className="space-y-4 pr-1">
-                    {activeSim.data.charges.map((c: any) => (
-                      <div key={c.id} className="group relative">
-                        <div className="flex items-center gap-3">
-                          <input
-                            value={c.name}
-                            aria-label={`Nom de la charge ${c.name}`}
-                            onChange={(e) => updateCharge(c.id, 'name', e.target.value)}
-                            className="bg-transparent border-none text-xs font-bold text-slate-500 uppercase tracking-wider p-0 focus:ring-0 flex-1 placeholder-slate-300 outline-none"
-                            placeholder="Nom..."
-                          />
-                          <div className="relative w-32">
-                            <input
-                              type="number"
-                              value={c.value}
-                              aria-label={`Valeur de la charge ${c.name}`}
-                              onChange={(e) => updateCharge(c.id, 'value', Number(e.target.value))}
-                              className="w-full bg-slate-50 dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] rounded-xl px-4 py-2 text-sm font-bold text-slate-800 dark:text-white pr-8 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                            />
-                            <span aria-hidden="true" className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-400 pointer-events-none">€</span>
-                          </div>
-                          <button aria-label={`Supprimer la charge ${c.name}`} onClick={() => removeCharge(c.id)} className="opacity-0 group-hover:opacity-100 text-rose-400 hover:text-rose-600 transition-opacity bg-rose-50 dark:bg-rose-900/30 p-2 rounded-lg">
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </DashboardSection>
-              </div>
-
-              <div className="space-y-8 flex flex-col">
                 <DashboardSection
                   title="Revenus Locatifs"
                   icon={<Users size={18} className="text-slate-400" />}
