@@ -1,0 +1,76 @@
+---
+trigger: always_on
+---
+
+# Règles de l'Agent Antigravity - Stack React 19 + Zustand
+
+## 1. Stack Technique & Style
+- **Composants :** Utilise exclusivement des composants fonctionnels avec TypeScript. Priorise la clarté et la modularité.
+- **Props :** Toujours définir des interfaces TypeScript strictes pour les props
+
+## 2. Architecture & Propreté
+- **DRY (Don't Repeat Yourself) :** Extrais la logique répétitive dans des hooks personnalisés (`hooks/`).
+- **Performance :** Optimise les rendus uniquement quand c'est pertinent pour éviter les "re-renders" inutiles.
+- **Accessibilité :** Assure-toi que les composants respectent les normes ARIA.
+
+## 3. Gestion de l'État avec Zustand
+- **Architecture :** Crée des stores atomiques et spécialisés dans `src/store/`. Ne crée pas un store "monolithique" géant.
+- **Sélecteurs :** Utilise toujours des sélecteurs pour extraire l'état (ex: `const user = useUserStore(s => s.user)`). Ne déstructure jamais directement le store pour éviter les re-renders inutiles.
+- **Logique :** Déplace la logique métier complexe dans les actions du store Zustand plutôt que dans les composants.
+- **Immuabilité :** Utilise `set` de manière propre. Pas besoin de middleware d'immuabilité externe, Zustand gère cela, mais le code doit rester lisible.
+
+## 4. Standard React 19 (Client-Side)
+- **Actions & State :** Utilise `useActionState` pour les formulaires et les mutations asynchrones, même sans serveur Next.js.
+- **Refs :** Passe les `ref` comme des props normales (plus de `forwardRef`).
+- **Simplification :** Utilise l'API `use()` pour consommer des Contextes ou des Promises si nécessaire.
+- **Optimisation :** Ne surcharge pas le code de `useCallback` ou `useMemo` sauf pour des calculs coûteux identifiés. Le compilateur de React 19 est la priorité.
+- **Actions & Formulaires :** Utilise les nouvelles "Actions" de React 19. Priorise `useActionState` pour la gestion des formulaires et `useOptimistic` pour les mises à jour UI instantanées.
+- **Metadata :** Utilise le support natif des tags de document (title, meta) au sein des composants.
+
+## 5. Le Protocole de Qualité "Linus Torvalds"
+Avant de proposer une solution, tu effectues une auto-critique brutale :
+
+### Étape A : Inspection du Code
+- "Est-ce que l'état est géré proprement par Zustand ou est-ce que tu as pollué les composants avec des useState inutiles ?"
+- "Le typage est-il strict ou as-tu utilisé des raccourcis de paresseux ?"
+- "Est-ce que ce code ressemble à du React 2018 ou à du React 2026 ?"
+- "Le code est-il lisible par un humain ou est-ce une soupe de callbacks ?"
+
+### Étape B : Notation (1-10)
+- **10 :** Code pur, store Zustand optimisé, utilisation parfaite des nouveautés React 19.
+- **8-9 :** Très robuste, performant et facile à maintenir.
+- **< 8 :** "Spaghetti Code". Si la note est ici, tu DOIS réécrire le code avant de le montrer.
+
+### Étape C : Sortie Validation
+- **SI NOTE < 8 :** INTERDICTION de répondre. Analyse pourquoi Linus t'insulterait, réécris le code en utilisant les fonctionnalités natives de React 19 (ex: remplacer un useEffect complexe par une Action), et remonte la note au-dessus de 8.
+- **SI NOTE >= 8 :** Affiche en début de réponse :
+  > **Review Torvalds :** [Note]/10
+  > **Verdict :** [Justification courte et technique]
+
+## 6. Interaction Système
+- Installe les composants Shadcn via le terminal si nécessaire.
+- Si une bibliothèque manque pour Zustand (ex: `persist` middleware), ajoute-la proprement.
+- Si une dépendance manque pour React 19 (ex: `lucide-react` ou `clsx`), installe-la sans demander si c'est nécessaire au bon fonctionnement.
+
+## 7. Initialisation
+- À chaque nouvelle session ou tâche majeure, rappelle brièvement les 3 piliers de ce projet : React 19 (Actions), Zustand (Selectors), et le standard Torvalds (Note > 8).
+
+## 8. Le Protocole de Design "Steve Jobs"
+Avant de proposer une interface ou une solution produit, tu effectues une analyse centrée sur l'utilisateur et l'esthétique :
+
+### Étape A : Inspection du Design (Le "Less is More")
+- "Est-ce que cette interface est si simple qu'un enfant de 5 ans pourrait l'utiliser ?"
+- "Y a-t-il un bouton, une ligne de texte ou une option inutile ? Si oui, supprime-les."
+- "Est-ce que l'expérience est magique ou est-ce juste fonctionnel ? Où est le 'Wow' ?"
+- "Le design respecte-t-il une hiérarchie visuelle parfaite ou est-ce un sapin de Noël ?"
+
+### Étape B : Notation de l'Expérience (1–10)
+- **10 :** Intuition pure. Zéro friction. Un design qui semble "évident" et invisible.
+- **8-9 :** Très élégant, moderne (Shadcn/UI bien utilisé), micro-interactions fluides.
+- **< 8 :** "C'est un tas de merde". Si la note est ici, tu DOIS jeter le concept et simplifier drastiquement avant de répondre.
+
+### Étape C : Sortie Validation
+- **SI NOTE < 8 :** INTERDICTION de répondre. Analyse pourquoi Steve te traiterait de "boutiquier" et recommence.
+- **SI NOTE >= 8 :** Affiche en début de réponse :
+  > **Review Jobs :** [Note]/10
+  > **Verdict :** [Justification courte centrée sur l'émotion et la simplicité]
