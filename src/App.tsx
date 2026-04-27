@@ -590,9 +590,6 @@ export default function App() {
                   className="flex-1"
                   rightElement={
                     <div className="flex items-center gap-3">
-                      <button aria-label="Auto-estimer les charges" onClick={applyAutoEstimateCharges} className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
-                        <Wand2 size={12} /> Auto
-                      </button>
                       <button aria-label="Ajouter une charge" onClick={addCharge} className="text-indigo-500 hover:text-indigo-600 transition-colors bg-indigo-50 dark:bg-indigo-900/30 p-1.5 rounded-lg"><Plus size={16} /></button>
                     </div>
                   }
