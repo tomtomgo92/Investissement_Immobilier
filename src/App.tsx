@@ -44,12 +44,9 @@ export default function App() {
   const simulations = useSimulationStore(state => state.simulations);
   const activeSimId = useSimulationStore(state => state.activeSimId);
   const viewMode = useSimulationStore(state => state.viewMode);
-  const isDarkMode = useSimulationStore(state => state.isDarkMode);
-
+  const setViewMode = useSimulationStore(state => state.setViewMode);
   const setSimulations = useSimulationStore(state => state.setSimulations);
   const setActiveSimId = useSimulationStore(state => state.setActiveSimId);
-  const setViewMode = useSimulationStore(state => state.setViewMode);
-  const toggleDarkMode = useSimulationStore(state => state.toggleDarkMode);
   const addSimulation = useSimulationStore(state => state.addSimulation);
   const importSharedSimulation = useSimulationStore(state => state.importSharedSimulation);
   
@@ -114,14 +111,7 @@ export default function App() {
     }
   }, [activeSimPostalCode]);
 
-  // Dark Mode Toggle Effect
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
+  // Dark Mode Toggle Effect removed
 
   // Graph visibility state
   const [visibleDimensions, setVisibleDimensions] = useState({
@@ -161,7 +151,7 @@ export default function App() {
     },
     scales: {
       y: {
-        grid: { color: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' },
+        grid: { color: 'rgba(0,0,0,0.03)' },
         ticks: { color: '#94a3b8', font: { weight: 600 as const, size: 10 }, callback: (v: any) => `${v / 1000}k€` }
       },
       x: {
@@ -169,7 +159,7 @@ export default function App() {
         ticks: { color: '#94a3b8', font: { weight: 600 as const, size: 10 }, maxTicksLimit: 6 }
       }
     }
-  }), [isDarkMode]);
+  }), []);
 
 
   useEffect(() => {
@@ -304,14 +294,6 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            aria-label="Activer le mode sombre/clair"
-            onClick={toggleDarkMode}
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800"
-          >
-            {isDarkMode ? <Eye size={18} /> : <EyeOff size={18} />}
-          </button>
-          <div className="h-4 w-px bg-slate-200 dark:bg-white/[0.05] mx-2" />
           <button
             onClick={() => setViewMode(viewMode === 'pipeline' ? 'dashboard' : 'pipeline')}
             className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'pipeline' ? 'bg-indigo-50 border-indigo-200 text-indigo-600 dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-300 shadow-sm' : 'border-slate-200/50 dark:border-white/[0.05] text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
@@ -714,7 +696,7 @@ export default function App() {
                         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-2 block group-hover:text-amber-500 transition-colors">Structure Fiscale</span>
                         <h2 className="text-xl font-bold text-slate-800 dark:text-white">Amortissement & Impôts</h2>
                     </div>
-                    <AmortizationChart data={calculations.projectionData} isDarkMode={isDarkMode} />
+                    <AmortizationChart data={calculations.projectionData} />
                 </section>
             </div>
 

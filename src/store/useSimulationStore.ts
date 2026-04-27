@@ -16,7 +16,6 @@ interface SimulationState {
     simulations: Simulation[];
     activeSimId: string | null;
     viewMode: 'dashboard' | 'pipeline' | 'comparator';
-    isDarkMode: boolean;
 
     // Actions
     setSimulations: (simulations: Simulation[] | ((prev: Simulation[]) => Simulation[])) => void;
@@ -28,7 +27,6 @@ interface SimulationState {
     removeCharge: (id: string) => void;
     applyAutoEstimateCharges: () => void;
     setViewMode: (mode: 'dashboard' | 'pipeline' | 'comparator') => void;
-    toggleDarkMode: () => void;
     importSharedSimulation: (hash: string) => boolean;
 }
 
@@ -38,7 +36,6 @@ export const useSimulationStore = create<SimulationState>()(
             simulations: [{ id: uuidv4(), name: 'Investissement Lyon 3', pipelineStatus: 'À analyser', data: { ...INITIAL_DATA } }],
             activeSimId: null,
             viewMode: 'dashboard',
-            isDarkMode: false,
 
             setSimulations: (updater) => set((state) => ({
                 simulations: typeof updater === 'function' ? updater(state.simulations) : updater
@@ -127,8 +124,6 @@ export const useSimulationStore = create<SimulationState>()(
 
             setViewMode: (mode) => set({ viewMode: mode }),
 
-            toggleDarkMode: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
-
             importSharedSimulation: (hash) => {
                 let sharedSim = null;
                 if (hash.startsWith('#share=')) {
@@ -149,7 +144,7 @@ export const useSimulationStore = create<SimulationState>()(
         }),
         {
             name: 'invest_simulations',
-            partialize: (state) => ({ simulations: state.simulations, isDarkMode: state.isDarkMode }),
+            partialize: (state) => ({ simulations: state.simulations }),
         }
     )
 );
